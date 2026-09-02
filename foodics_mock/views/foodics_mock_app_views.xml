@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_mock_app_form" model="ir.ui.view">
+        <field name="name">foodics.mock.app.form</field>
+        <field name="model">foodics.mock.app</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Mock App">
+                <header>
+                    <button name="action_revoke" type="object" string="Revoke Token"
+                            invisible="not access_token"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Credentials to copy into Foodics Connection">
+                            <field name="client_id"/>
+                            <field name="client_secret"/>
+                            <field name="redirect_uri"/>
+                        </group>
+                        <group string="Fake Business">
+                            <field name="business_name"/>
+                            <field name="business_reference"/>
+                        </group>
+                    </group>
+                    <group string="Webhooks (optional)">
+                        <field name="webhook_url"
+                               placeholder="e.g. http://localhost:8069/foodics/webhook/&lt;secret from foodics_base&gt;"/>
+                    </group>
+                    <group string="Runtime state (read-only)">
+                        <field name="pending_code" readonly="1"/>
+                        <field name="access_token" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_app_list" model="ir.ui.view">
+        <field name="name">foodics.mock.app.list</field>
+        <field name="model">foodics.mock.app</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Mock Apps">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="redirect_uri"/>
+                <field name="access_token"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_mock_app" model="ir.actions.act_window">
+        <field name="name">Fake Apps</field>
+        <field name="res_model">foodics.mock.app</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a fake Foodics app to test with</p>
+            <p>This stands in for the app + credentials the real Foodics team would create for you.</p>
+        </field>
+    </record>
+
+</odoo>

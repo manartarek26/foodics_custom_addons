@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_foodics_pos_order" name="POS Orders" parent="foodics_base.menu_foodics_root"
+              action="action_foodics_pos_order" sequence="45"/>
+    <menuitem id="menu_foodics_tax_mapping" name="Tax Mapping" parent="foodics_base.menu_foodics_root"
+              action="action_foodics_tax_mapping" sequence="50"/>
+    <menuitem id="menu_foodics_payment_method" name="Payment Methods" parent="foodics_base.menu_foodics_root"
+              action="action_foodics_payment_method" sequence="55"/>
+
+</odoo>

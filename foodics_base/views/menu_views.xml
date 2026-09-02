@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_foodics_root" name="Foodics" sequence="70"/>
+
+    <menuitem id="menu_foodics_config" name="Connection" parent="menu_foodics_root"
+              action="action_foodics_config" sequence="10"/>
+    <menuitem id="menu_foodics_branch" name="Branches" parent="menu_foodics_root"
+              action="action_foodics_branch" sequence="20"/>
+    <menuitem id="menu_foodics_product_mapping" name="Product Mapping" parent="menu_foodics_root"
+              action="action_foodics_product_mapping" sequence="30"/>
+    <menuitem id="menu_foodics_webhook_log" name="Webhook Log" parent="menu_foodics_root"
+              action="action_foodics_webhook_log" sequence="90"/>
+
+</odoo>

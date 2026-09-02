@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foodics_config,foodics.config,model_foodics_config,base.group_user,1,1,1,1
+access_foodics_branch,foodics.branch,model_foodics_branch,base.group_user,1,1,1,1
+access_foodics_product_mapping,foodics.product.mapping,model_foodics_product_mapping,base.group_user,1,1,1,0
+access_foodics_webhook_log,foodics.webhook.log,model_foodics_webhook_log,base.group_user,1,1,1,0

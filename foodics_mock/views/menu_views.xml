@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_foodics_mock_root" name="Foodics Mock" sequence="71"/>
+
+    <menuitem id="menu_foodics_mock_app" name="Fake Apps" parent="menu_foodics_mock_root"
+              action="action_foodics_mock_app" sequence="10"/>
+    <menuitem id="menu_foodics_mock_order" name="Received Orders" parent="menu_foodics_mock_root"
+              action="action_foodics_mock_order" sequence="20"/>
+    <menuitem id="menu_foodics_mock_pos_order" name="Mock POS Orders" parent="menu_foodics_mock_root"
+              action="action_foodics_mock_pos_order" sequence="30"/>
+
+</odoo>

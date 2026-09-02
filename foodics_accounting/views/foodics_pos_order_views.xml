@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_pos_order_list" model="ir.ui.view">
+        <field name="name">foodics.pos.order.list</field>
+        <field name="model">foodics.pos.order</field>
+        <field name="arch" type="xml">
+            <list string="Foodics POS Orders" decoration-danger="state == 'needs_review'"
+                  decoration-success="state in ('invoiced', 'refunded')" decoration-muted="state == 'ignored'">
+                <field name="foodics_reference"/>
+                <field name="foodics_order_id"/>
+                <field name="branch_id"/>
+                <field name="partner_id"/>
+                <field name="business_date"/>
+                <field name="total_price"/>
+                <field name="state"/>
+                <field name="pos_order_id"/>
+                <field name="invoice_id"/>
+                <field name="invoice_move_state"/>
+                <field name="invoice_payment_state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_pos_order_search" model="ir.ui.view">
+        <field name="name">foodics.pos.order.search</field>
+        <field name="model">foodics.pos.order</field>
+        <field name="arch" type="xml">
+            <search string="Foodics POS Orders">
+                <field name="foodics_order_id"/>
+                <field name="foodics_reference"/>
+                <field name="partner_id"/>
+                <field name="branch_id"/>
+                <filter string="Needs Review" name="needs_review" domain="[('state', '=', 'needs_review')]"/>
+                <filter string="To Invoice" name="to_invoice" domain="[('state', '=', 'to_invoice')]"/>
+                <filter string="To Credit Note" name="to_refund" domain="[('state', '=', 'to_refund')]"/>
+                <filter string="Done" name="done" domain="[('state', 'in', ('invoiced', 'refunded'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Branch" name="group_branch" context="{'group_by': 'branch_id'}"/>
+                    <filter string="Business Date" name="group_date" context="{'group_by': 'business_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_foodics_pos_order_form" model="ir.ui.view">
+        <field name="name">foodics.pos.order.form</field>
+        <field name="model">foodics.pos.order</field>
+        <field name="arch" type="xml">
+            <form string="Foodics POS Order">
+                <header>
+                    <button name="action_create_invoice" type="object" string="Create Invoice/Credit Note"
+                            class="btn-primary" invisible="invoice_id or state not in ('to_invoice', 'to_refund')"/>
+                    <button name="action_retry" type="object" string="Retry"
+                            invisible="state != 'needs_review'"/>
+                    <button name="action_open_pos_order" type="object" string="Open POS Order"
+                            invisible="not pos_order_id"/>
+                    <button name="action_open_invoice" type="object" string="Open Invoice"
+                            invisible="not invoice_id"/>
+                    <button name="action_refresh_from_foodics" type="object" string="Refresh from Foodics"/>
+                    <field name="invoice_id" invisible="1"/>
+                    <field name="pos_order_id" invisible="1"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,to_invoice,invoiced"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'needs_review'">
+                        <field name="error_message"/>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_pos_order" type="object" class="oe_stat_button"
+                                icon="fa-shopping-cart" invisible="not pos_order_id">
+                            <div class="o_stat_info">
+                                <field name="pos_order_state" class="o_stat_text"/>
+                                <span class="o_stat_text">POS Order</span>
+                            </div>
+                        </button>
+                        <button name="action_open_invoice" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not invoice_id">
+                            <div class="o_stat_info">
+                                <field name="invoice_move_state" class="o_stat_text"/>
+                                <span class="o_stat_text">Invoice</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="foodics_order_id"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="config_id"/>
+                            <field name="branch_id"/>
+                            <field name="partner_id"/>
+                            <field name="foodics_reference"/>
+                            <field name="foodics_status"/>
+                            <field name="order_type"/>
+                            <field name="pos_order_id" readonly="1"/>
+                            <field name="original_order_id" readonly="1" invisible="not original_order_id"/>
+                        </group>
+                        <group>
+                            <field name="business_date"/>
+                            <field name="opened_at"/>
+                            <field name="closed_at"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="subtotal_price"/>
+                            <field name="discount_amount"/>
+                            <field name="rounding_amount"/>
+                            <field name="total_price"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="order_line_ids">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="is_charge"/>
+                                    <field name="is_combo"/>
+                                    <field name="product_mapping_id"/>
+                                    <field name="quantity"/>
+                                    <field name="discount_amount"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Payments">
+                            <field name="payment_ids">
+                                <list create="0" delete="0">
+                                    <field name="foodics_payment_id"/>
+                                    <field name="payment_method_id"/>
+                                    <field name="amount"/>
+                                    <field name="tendered"/>
+                                    <field name="tips"/>
+                                    <field name="business_date"/>
+                                    <field name="account_payment_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Raw Payload">
+                            <field name="raw_payload" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_pos_order" model="ir.actions.act_window">
+        <field name="name">Foodics POS Orders</field>
+        <field name="res_model">foodics.pos.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_foodics_pos_order_search"/>
+    </record>
+
+</odoo>

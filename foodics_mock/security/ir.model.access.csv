@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foodics_mock_app,foodics.mock.app,model_foodics_mock_app,base.group_user,1,1,1,1
+access_foodics_mock_order,foodics.mock.order,model_foodics_mock_order,base.group_user,1,1,1,1
+access_foodics_mock_pos_order,foodics.mock.pos.order,model_foodics_mock_pos_order,base.group_user,1,1,1,1
+access_foodics_mock_pos_order_line,foodics.mock.pos.order.line,model_foodics_mock_pos_order_line,base.group_user,1,1,1,1
+access_foodics_mock_pos_order_payment,foodics.mock.pos.order.payment,model_foodics_mock_pos_order_payment,base.group_user,1,1,1,1

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Testing foodics_accounting — Step-by-Step Guide</title>
+<style>
+  :root {
+    --ink: #23262f;
+    --muted: #666e7c;
+    --accent: #2a7d5f;
+    --accent-bg: #e9f6ef;
+    --line: #e6e6ea;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --warn: #9a6400;
+    --warn-bg: #fff5e0;
+    --bad: #a1273b;
+    --bad-bg: #fdecee;
+    --step: #2a5d9c;
+    --step-bg: #eaf1fb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+  header.page {
+    padding: 30px 24px;
+    background: linear-gradient(135deg, var(--accent), #4fae86);
+    color: white;
+    border-radius: 14px;
+    margin: 24px auto 32px;
+    max-width: 860px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header.page p { margin: 0; opacity: .92; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 46px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.06rem; margin: 22px 0 8px; }
+  p { font-size: 1.02rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .case {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--step);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 18px 0;
+  }
+  .case h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
+  .case .tag {
+    display: inline-block;
+    background: var(--step-bg);
+    color: var(--step);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .case ol { margin: 10px 0 6px; padding-left: 22px; }
+  .case li { margin: 6px 0; }
+  .expect {
+    margin-top: 12px;
+    background: var(--accent-bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .95rem;
+  }
+  .expect strong { color: var(--accent); }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .warn {
+    border-left: 4px solid var(--warn);
+    background: var(--warn-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .bad {
+    border-left: 4px solid var(--bad);
+    background: var(--bad-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .93rem; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: #f0f1f5;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .88em;
+  }
+  .btn {
+    display: inline-block;
+    background: #eef0f4;
+    border: 1px solid #d7dae1;
+    border-radius: 6px;
+    padding: 1px 8px;
+    font-size: .88em;
+    font-weight: 600;
+  }
+  .menupath { color: var(--muted); font-size: .92rem; }
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .toc ol { columns: 2; column-gap: 30px; padding-left: 20px; }
+  .toc li { margin: 4px 0; break-inside: avoid; }
+  .faq dt { font-weight: 700; margin-top: 16px; }
+  .faq dd { margin: 4px 0 0; color: var(--ink); }
+  footer { margin-top: 60px; color: var(--muted); font-size: .85rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Testing foodics_accounting, Step by Step</h1>
+    <p>How to exercise every case in the Foodics ↔ Odoo accounting integration - invoices,
+       credit notes, split payments, taxes, and the failure/retry paths - using the mock
+       server, with no real Foodics account needed.</p>
+  </header>
+
+  <div class="toc">
+    <strong>On this page</strong>
+    <ol>
+      <li><a href="#setup">0. One-time setup</a></li>
+      <li><a href="#masterdata">1. Master data: taxes &amp; payment methods</a></li>
+      <li><a href="#happy">2. Case A - the happy path</a></li>
+      <li><a href="#split">3. Case B - split payment</a></li>
+      <li><a href="#mixedtax">4. Case C - mixed tax + rounding</a></li>
+      <li><a href="#charge">5. Case D - service charge</a></li>
+      <li><a href="#customer">6. Case E - customer vs walk-in</a></li>
+      <li><a href="#refund">7. Case F - return / credit note</a></li>
+      <li><a href="#taxreview">8. Case G - unmapped tax → Needs Review</a></li>
+      <li><a href="#payreview">9. Case H - unmapped payment method → Needs Review</a></li>
+      <li><a href="#missed">10. Case I - missed webhook, caught by pull cron</a></li>
+      <li><a href="#replay">11. Case J - webhook replay / idempotency</a></li>
+      <li><a href="#nolines">12. Case K - empty order (defensive)</a></li>
+      <li><a href="#coverage">Coverage checklist</a></li>
+      <li><a href="#verify">Where to look: the accounting output</a></li>
+      <li><a href="#faq">Troubleshooting / FAQ</a></li>
+    </ol>
+  </div>
+
+  <h2 id="setup">0. One-time setup</h2>
+  <p>This assumes <code>foodics_base</code>, <code>foodics_mock</code> and
+     <code>foodics_accounting</code> are installed. If you haven't connected to the mock server
+     at all yet, do that first - see the root <code>README.md</code>, section "Test the whole
+     flow right now, with no real Foodics account", steps 1-4. In short:</p>
+  <ol>
+    <li>Create a <strong>Foodics Mock &gt; Fake App</strong>.</li>
+    <li>Create a <strong>Foodics &gt; Connection</strong> pointing its Custom API/Authorization
+        Base URLs at the mock server, and authorize it.</li>
+    <li>Copy the Connection's <strong>Webhook URL</strong> into the Fake App's
+        <strong>Webhook URL</strong> field - this is what lets the mock actually deliver
+        webhooks to Odoo, and every case below needs it.</li>
+  </ol>
+  <div class="warn">
+    <strong>If you change any Python file</strong> in <code>foodics_mock</code> or
+    <code>foodics_accounting</code> (or pull an update that does), <strong>restart the Odoo
+    server process</strong> before testing. Controller/model code is only read once, when the
+    process starts - editing a <code>.py</code> file on disk does not hot-reload into an
+    already-running server, unlike views/data which a module upgrade (<code>-u</code>, or Apps
+    &gt; Upgrade) does pick up. A stray 404 with a bare "NOT FOUND" body (not a JSON
+    <code>message</code>) almost always means this.
+  </div>
+  <p>On the Connection form, under the <strong>Accounting</strong> group, set:</p>
+  <table>
+    <tr><th>Field</th><th>Suggested test value</th></tr>
+    <tr><td>Sales Journal</td><td>Any Sales journal</td></tr>
+    <tr><td>Default Customer</td><td>Any contact - used for walk-in (no-customer) orders</td></tr>
+    <tr><td>Auto-post invoices</td><td>On (default) - to test the full automatic path first</td></tr>
+    <tr><td>Auto-register payments</td><td>On (default)</td></tr>
+  </table>
+
+  <h2 id="masterdata">1. Master data: taxes &amp; payment methods</h2>
+  <p>Do this once, before firing any orders - every case below depends on it.</p>
+  <div class="card">
+    <ol>
+      <li>On the Connection, click <span class="btn">Sync Taxes</span>. The mock returns one
+          canned tax, <code>VAT 15% (Mock)</code>.</li>
+      <li>On the Connection, click <span class="btn">Sync Payment Methods</span>. The mock
+          returns two: <code>Cash (Mock)</code> and <code>Card (Mock)</code>.</li>
+      <li>Open <span class="menupath">Foodics &gt; Tax Mapping</span> and set <strong>Odoo
+          Tax</strong> on the VAT 15% row to a real 15% sale tax (create one if your chart of
+          accounts doesn't have one).</li>
+      <li>Open <span class="menupath">Foodics &gt; Payment Methods</span> and set a
+          <strong>Odoo Journal</strong> on both rows - e.g. Cash → your Cash journal, Card →
+          your Bank journal.</li>
+    </ol>
+  </div>
+  <p>Leave one thing unmapped for now - Cases G and H below deliberately test what happens when
+     you forget this step.</p>
+
+  <h2>Building test orders: Foodics Mock &gt; Mock POS Orders</h2>
+  <p>Every case below uses this same tool. It represents a POS sale you build by hand - branch,
+     product lines, an optional charge, payments, an optional customer - then fires it at
+     <code>foodics_accounting</code> exactly the way a real Foodics till would: as an
+     <code>order.updated</code> (or <code>customer.order.updated</code>, if a customer is set)
+     webhook, carrying the same order shape <code>GET /orders</code> returns.</p>
+  <table>
+    <tr><th>Button</th><th>What it does</th></tr>
+    <tr><td><span class="btn">Send order.created</span></td>
+        <td>Fires the order while still Pending - not accounting-relevant, just confirms the
+            event reaches <code>foodics.webhook.log</code> and is correctly ignored.</td></tr>
+    <tr><td><span class="btn">Close &amp; Send order.updated</span></td>
+        <td>Sets status to Closed (4) and fires the webhook - the main path.</td></tr>
+    <tr><td><span class="btn">Close WITHOUT Webhook</span></td>
+        <td>Sets status to Closed but does <em>not</em> call the webhook - for testing the pull
+            cron/button as the backstop.</td></tr>
+    <tr><td><span class="btn">Return This Order</span></td>
+        <td>Rings up a brand-new order (its own id/number) as a full return of this one, status
+            5, and fires its webhook - matching how Foodics itself models a return.</td></tr>
+    <tr><td><span class="btn">Resend Update</span></td>
+        <td>Re-fires <code>order.updated</code> with the current data - for testing replay
+            safety.</td></tr>
+  </table>
+  <div class="note">
+    A real till won't let you close an order until payments add up to the total - this tool
+    enforces the same rule (a warning banner appears, and <span class="btn">Close &amp; Send
+    order.updated</span> is blocked, until <strong>Payments</strong> equals <strong>Total
+    Price</strong> on the Lines tab).
+  </div>
+
+  <h2 id="happy">2. Case A - the happy path</h2>
+  <div class="case">
+    <h3><span class="tag">Core</span> One product, one cash payment</h3>
+    <ol>
+      <li>Create a Mock POS Order. Branch: Main Branch. Leave Customer empty (walk-in).</li>
+      <li>Lines tab: add one line, product <em>Burger</em>, quantity 1 (unit price/taxable
+          auto-fill to 28.0 / taxable).</li>
+      <li>Payments tab: add one payment, method <em>Cash</em>, amount = the Total Price shown on
+          the Lines tab (32.2 for one Burger at 15% VAT).</li>
+      <li>Click <span class="btn">Close &amp; Send order.updated</span>.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> a new record under <span class="menupath">Foodics &gt; POS
+      Orders</span>, state <strong>Invoiced</strong>, with a linked Invoice already
+      <strong>Posted</strong> and <strong>Paid</strong>. Open the invoice - one line ("Burger"),
+      15% tax, total matching. The <strong>Foodics Order</strong> smart button on the invoice
+      links back to this record.
+    </div>
+  </div>
+
+  <h2 id="split">3. Case B - split payment</h2>
+  <div class="case">
+    <h3><span class="tag">Payments</span> Two payment methods on one order</h3>
+    <ol>
+      <li>New Mock POS Order, two lines (e.g. Burger x1, Pepsi x1).</li>
+      <li>Payments tab: add <em>two</em> rows - part Cash, part Card - that together equal the
+          total (split it any way you like).</li>
+      <li>Close &amp; Send.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> state <strong>Invoiced</strong>, invoice <strong>Paid</strong>.
+      Open the POS Order's <strong>Payments</strong> tab - two rows, each with its own
+      <strong>Odoo Payment</strong> linked, both reconciled against the same invoice.
+    </div>
+  </div>
+
+  <h2 id="mixedtax">4. Case C - mixed taxable/non-taxable lines + rounding</h2>
+  <div class="case">
+    <h3><span class="tag">Taxes</span> Milk is non-taxable by default</h3>
+    <ol>
+      <li>New Mock POS Order, two lines: <em>Pepsi</em> (taxable, auto-checked) and <em>Milk</em>
+          (auto-unchecked - it's the one canned "non-taxable" product).</li>
+      <li>Set a small <strong>Rounding Amount</strong> on the Lines tab, e.g. 0.1.</li>
+      <li>Pay the exact total shown (which now includes the rounding), Close &amp; Send.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the invoice has a tax line only on Pepsi, a plain untaxed line for
+      Milk, and a separate "Rounding" line for the rounding amount. Total still matches exactly
+      (this is exactly the scenario the automatic total-match check is there to catch if it
+      <em>didn't</em> line up).
+    </div>
+  </div>
+
+  <h2 id="charge">5. Case D - service charge</h2>
+  <div class="case">
+    <h3><span class="tag">Charges</span> An order-level charge, taxed</h3>
+    <ol>
+      <li>New Mock POS Order, one product line.</li>
+      <li>Under <strong>Optional Charge</strong>, set an amount (e.g. 5) and leave
+          <strong>Charge Taxable</strong> checked.</li>
+      <li>Pay the total, Close &amp; Send.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the invoice has an extra line named "Service Charge" (or whatever
+      you typed), taxed the same way a product line is.
+    </div>
+  </div>
+
+  <h2 id="customer">6. Case E - customer vs walk-in</h2>
+  <div class="case">
+    <h3><span class="tag">Customers</span> Named customer creates/reuses an Odoo contact</h3>
+    <ol>
+      <li>New Mock POS Order. Fill in <strong>Customer Name</strong> (and optionally
+          phone/email). Notice the event fired becomes <code>customer.order.updated</code>
+          instead of <code>order.updated</code> once a customer is set.</li>
+      <li>Add a line, pay the total, Close &amp; Send.</li>
+      <li>Create a <em>second</em> order with the <strong>same</strong> customer name+phone,
+          close &amp; send that too.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> both invoices are billed to the <em>same</em> Odoo contact (check
+      <code>res.partner</code> - only one was created, matched by the stable customer id the
+      mock derives from name+phone). An order with no Customer Name instead bills to the
+      Connection's <strong>Default Customer</strong>.
+    </div>
+  </div>
+
+  <h2 id="refund">7. Case F - return / credit note</h2>
+  <div class="case">
+    <h3><span class="tag">Refunds</span> A return is a separate order, not a status flip</h3>
+    <ol>
+      <li>Take any already-Closed Mock POS Order from a case above.</li>
+      <li>Click <span class="btn">Return This Order</span>. This opens a brand-new Mock POS
+          Order - its own id/number, status Returned - copied from the original's lines and
+          payments, and its webhook has already been sent.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> a <em>second</em> <span class="menupath">Foodics &gt; POS
+      Orders</span> record, state <strong>Credit Noted</strong>, linked to a
+      <strong>Credit Note</strong> (not an invoice) that's posted. Its
+      <strong>Payment Status</strong> stays unreconciled - credit notes don't auto-register a
+      payment (see the README's "Notes" section for why: Foodics doesn't reliably tell us which
+      original invoice/payment a return corresponds to, so that step is left for manual
+      handling).
+    </div>
+  </div>
+
+  <h2 id="taxreview">8. Case G - unmapped tax → Needs Review</h2>
+  <div class="case">
+    <h3><span class="tag">Failure path</span> Missing tax mapping doesn't post a wrong invoice</h3>
+    <ol>
+      <li>Go to <span class="menupath">Foodics &gt; Tax Mapping</span> and clear the
+          <strong>Odoo Tax</strong> on the VAT 15% row (or delete the row entirely).</li>
+      <li>New Mock POS Order, one taxable line, pay the total, Close &amp; Send.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the POS Order lands in state <strong>Needs Review</strong>, with
+      an error banner explaining the invoice total doesn't match Foodics' total. The invoice
+      <em>was</em> created, but left as a <strong>draft</strong> - nothing posted, nothing paid.
+    </div>
+    <h3>Now fix it</h3>
+    <ol>
+      <li>Re-map the tax under Foodics &gt; Tax Mapping.</li>
+      <li>Open the draft invoice directly, add the correct tax to its line by hand, and post it
+          (the mapping fix does not retroactively regenerate already-created draft invoice
+          lines - see the FAQ below for why).</li>
+      <li>Back on the POS Order, click <span class="btn">Retry</span>.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> state moves to <strong>Invoiced</strong>, and the payment(s) get
+      registered/reconciled now that the invoice is posted.
+    </div>
+  </div>
+
+  <h2 id="payreview">9. Case H - unmapped payment method → Needs Review</h2>
+  <div class="case">
+    <h3><span class="tag">Failure path</span> Missing journal mapping doesn't block the invoice</h3>
+    <ol>
+      <li>Go to <span class="menupath">Foodics &gt; Payment Methods</span> and clear the
+          <strong>Odoo Journal</strong> on the Cash row.</li>
+      <li>New Mock POS Order, pay with Cash, Close &amp; Send.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> unlike Case G, the invoice <em>does</em> post this time - state
+      is <strong>Needs Review</strong>, but <strong>Invoice Status</strong> already shows
+      Posted. Only the payment side is stuck.
+    </div>
+    <h3>Now fix it</h3>
+    <ol>
+      <li>Re-map the Cash journal under Foodics &gt; Payment Methods.</li>
+      <li>Back on the POS Order, click <span class="btn">Retry</span> - no manual invoice editing
+          needed this time.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> state moves to <strong>Invoiced</strong>, a new Odoo Payment
+      appears, reconciled against the invoice.
+    </div>
+  </div>
+
+  <h2 id="missed">10. Case I - missed webhook, caught by the pull cron</h2>
+  <div class="case">
+    <h3><span class="tag">Reliability</span> The pull sync is the safety net under the webhook</h3>
+    <ol>
+      <li>New Mock POS Order, one line, matching payment.</li>
+      <li>Click <span class="btn">Close WITHOUT Webhook</span> instead of the usual close
+          button.</li>
+      <li>Confirm nothing shows up yet under Foodics &gt; POS Orders.</li>
+      <li>On the Connection, click <span class="btn">Pull Orders</span> (or wait for the "Foodics:
+          Pull POS Orders" scheduled action, every 15 minutes by default).</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the order now appears and gets invoiced, exactly as if the webhook
+      had fired - it went through <code>GET /orders</code> instead of the webhook, into the
+      exact same code path.
+    </div>
+  </div>
+
+  <h2 id="replay">11. Case J - webhook replay / idempotency</h2>
+  <div class="case">
+    <h3><span class="tag">Reliability</span> Resending the same event must not duplicate anything</h3>
+    <ol>
+      <li>Take any already-Invoiced order from a case above.</li>
+      <li>Note its Invoice number and its Payments tab (Odoo Payment references).</li>
+      <li>Click <span class="btn">Resend Update</span>.</li>
+      <li>Also try clicking <span class="btn">Pull Orders</span> on the Connection right after -
+          it will see this same order again too.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> nothing changes - same Invoice, same Payments, no new records of
+      either kind. This is what "idempotent" means in practice: Foodics is documented to retry
+      failed webhooks up to twice, and the pull cron re-covers the same date range on every run,
+      so this has to hold for the integration to be safe to run unattended.
+    </div>
+  </div>
+
+  <h2 id="nolines">12. Case K - empty order (defensive)</h2>
+  <div class="case">
+    <h3><span class="tag">Defensive</span> An order with nothing to invoice shouldn't crash</h3>
+    <ol>
+      <li>New Mock POS Order with <em>no</em> lines at all (this one can't be built through the
+          UI's own close-guard since there's nothing to pay for either - use the developer/
+          technical list view to force status to 4 and call the webhook method directly if you
+          want to reproduce this exact case, or simply trust the code path: it's covered by an
+          automated check, see the FAQ).</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> state <strong>Needs Review</strong>, error "This order has no
+      lines to invoice." - not a crash, not a silently-skipped webhook. This case is exercised by
+      an automated test rather than the UI, since the UI's own payment-balance guard makes it
+      awkward to reach by hand.
+    </div>
+  </div>
+
+  <h2 id="coverage">Coverage checklist</h2>
+  <p>How the cases above map to Foodics' own "Accounting/ERP Integration" guide test cases:</p>
+  <table>
+    <tr><th>Foodics guide test case</th><th>Covered by</th></tr>
+    <tr><td>Sales amount reflected correctly</td><td>Case A</td></tr>
+    <tr><td>Tax amounts reflected correctly</td><td>Case A, C</td></tr>
+    <tr><td>Charge amounts reflected correctly</td><td>Case D</td></tr>
+    <tr><td>Multi-payment orders handled correctly</td><td>Case B</td></tr>
+    <tr><td>Rounding amounts reflected correctly</td><td>Case C</td></tr>
+    <tr><td>Payment methods reflected/mapped correctly</td><td>Case A, B, H</td></tr>
+    <tr><td>Taxes synced/mapped</td><td>Section 1, Case G</td></tr>
+    <tr><td>Payment methods synced/mapped</td><td>Section 1, Case H</td></tr>
+    <tr><td>Handling pagination in list endpoints</td>
+        <td>Exercised automatically - <code>_get_all()</code> walks every page (see
+            <code>foodics_base</code>); not separately staged here since the mock only ever
+            returns one page of data.</td></tr>
+    <tr><td>Handling nullable fields</td><td>Case E (no customer), Case D (no charge)</td></tr>
+    <tr><td>Returned orders deducted from completed orders</td><td>Case F</td></tr>
+  </table>
+  <div class="note">
+    <strong>Not covered by the mock tool:</strong> combos (products nested inside a Foodics
+    combo) - the Mock POS Order UI only builds top-level product lines. The
+    <code>foodics.pos.order._line_vals_from_product()</code> code path that flattens combo
+    products is instead covered by an automated test, not a clickable mock scenario. If you need
+    to click through a combo case by hand, the fastest way is a one-off Python snippet building a
+    payload with a <code>combos</code> array (see the Foodics Orders API docs for the shape) and
+    calling <code>env['foodics.pos.order']._sync_from_payload(config, data)</code> directly from
+    an <code>odoo-bin shell</code> session.
+  </div>
+
+  <h2 id="verify">Where to look: the accounting output</h2>
+  <table>
+    <tr><th>What</th><th>Where</th></tr>
+    <tr><td>The parsed Foodics order, its lines, payments, and raw payload</td>
+        <td><span class="menupath">Foodics &gt; POS Orders</span></td></tr>
+    <tr><td>The generated invoice/credit note</td>
+        <td><span class="menupath">Accounting &gt; Customer Invoices</span>, or the smart button
+            on the POS Order / the "Foodics Order" smart button on the invoice itself</td></tr>
+    <tr><td>The registered payments</td>
+        <td><span class="menupath">Accounting &gt; Customer Payments</span>, or the POS Order's
+            Payments tab</td></tr>
+    <tr><td>The actual journal entry (debits/credits)</td>
+        <td>Open the invoice or payment, then its "Journal Entry" smart button - standard Odoo
+            accounting, nothing Foodics-specific about this part</td></tr>
+    <tr><td>Every inbound webhook call, processed or failed</td>
+        <td><span class="menupath">Foodics &gt; Webhook Log</span> (from <code>foodics_base</code>)
+            - each row shows the event name, state, and (if it failed) the error</td></tr>
+  </table>
+
+  <h2 id="faq">Troubleshooting / FAQ</h2>
+  <dl class="faq">
+    <dt>I clicked a button and got a 404 with a plain "NOT FOUND" body.</dt>
+    <dd>That's not a Foodics-shaped error (those come back as JSON with a <code>message</code>
+        key) - it means the URL didn't match any route at all. Almost always: the Odoo server
+        process needs a restart to pick up a Python file change (see the warning box in
+        Section 0).</dd>
+
+    <dt>"Sync Taxes"/"Pull Orders" says 401 Unauthenticated.</dt>
+    <dd>The Connection isn't authorized against the mock yet, or its access token doesn't match
+        any Fake App - click "Authorize with Foodics" again.</dd>
+
+    <dt>Why doesn't fixing a Tax Mapping and clicking Retry regenerate the invoice lines?</dt>
+    <dd>By the time a total-mismatch is detected, the (draft) invoice already exists with
+        whatever lines were built at that moment - regenerating it automatically would mean
+        silently discarding a document a human might already be looking at or have started
+        editing. Instead you fix the draft directly (it's still fully editable, nothing is
+        posted yet) and post it yourself; Retry then picks up from there for the payment
+        side. This is different from the payment-mapping case (Case H), where nothing about the
+        already-posted invoice needs to change - only a new payment needs to be created - so
+        Retry can do that part fully automatically.</dd>
+
+    <dt>Can I test against real Foodics after all this?</dt>
+    <dd>Yes - nothing about foodics_accounting changes. Follow the root README's "Switching to
+        the real Foodics API later" section on the Connection record; Sync Taxes/Payment
+        Methods/Pull Orders all route through the same <code>foodics.config._get/_get_all</code>
+        helpers either way.</dd>
+
+    <dt>Does firing a mock webhook actually go over HTTP, or is it faked in Python?</dt>
+    <dd>Real HTTP - the Mock POS Order model does an actual <code>POST</code> to the Connection's
+        Webhook URL, landing on <code>foodics_base</code>'s real webhook controller, exactly like
+        the genuine Foodics service would call it. That's deliberate: it means these test cases
+        also exercise signature/lookup/dispatch code, not just the accounting logic itself.</dd>
+  </dl>
+
+  <footer>Foodics ↔ Odoo 18 integration — internal module documentation.</footer>
+</div>
+</body>
+</html>

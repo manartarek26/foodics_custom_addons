@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_foodics" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.foodics</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <div class="app_settings_block" data-string="Foodics" string="Foodics"
+                     data-key="foodics_base" groups="base.group_system">
+                    <h2>Foodics</h2>
+                    <div class="row mt16 o_settings_container" name="foodics_setting_container">
+                        <div class="col-12 col-lg-6 o_setting_box" id="foodics_product_approval_setting">
+                            <div class="o_setting_left_pane">
+                                <field name="foodics_product_requires_approval"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="foodics_product_requires_approval"
+                                       string="Foodics products require approval"/>
+                                <div class="text-muted">
+                                    Require someone to approve a product synced from Foodics'
+                                    menu (Foodics &gt; Product Mapping) before the matching Odoo
+                                    product is created/linked and made available - e.g. for
+                                    inventory. Turn this off to have new products created/linked
+                                    automatically as soon as they are synced.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

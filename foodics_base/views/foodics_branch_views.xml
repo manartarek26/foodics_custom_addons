@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_branch_list" model="ir.ui.view">
+        <field name="name">foodics.branch.list</field>
+        <field name="model">foodics.branch</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Branches">
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="receives_online_orders"/>
+                <field name="warehouse_id"/>
+                <field name="opening_from"/>
+                <field name="opening_to"/>
+                <field name="foodics_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_branch_form" model="ir.ui.view">
+        <field name="name">foodics.branch.form</field>
+        <field name="model">foodics.branch</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Branch">
+                <sheet>
+                    <div class="alert alert-info" role="alert"
+                         invisible="warehouse_id">
+                        This branch is not mapped to an Odoo Warehouse yet. Orders for it can
+                        still be pushed to Foodics, but Odoo won't know which warehouse/company
+                        they belong to. See the module documentation ("Branches") for why this is
+                        a manual, one-time step.
+                    </div>
+                    <group>
+                        <group string="From Foodics (read-only)">
+                            <field name="name"/>
+                            <field name="config_id"/>
+                            <field name="foodics_id"/>
+                            <field name="reference"/>
+                            <field name="receives_online_orders"/>
+                            <field name="opening_from"/>
+                            <field name="opening_to"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Odoo Mapping (set once, by you)">
+                            <field name="warehouse_id"/>
+                            <field name="company_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_branch" model="ir.actions.act_window">
+        <field name="name">Foodics Branches</field>
+        <field name="res_model">foodics.branch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

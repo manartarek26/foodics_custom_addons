@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_mock_order_list" model="ir.ui.view">
+        <field name="name">foodics.mock.order.list</field>
+        <field name="model">foodics.mock.order</field>
+        <field name="arch" type="xml">
+            <list string="Orders received by the mock server">
+                <field name="foodics_id"/>
+                <field name="app_id"/>
+                <field name="branch_id"/>
+                <field name="order_type"/>
+                <field name="total_price"/>
+                <field name="status"/>
+                <field name="state"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_order_form" model="ir.ui.view">
+        <field name="name">foodics.mock.order.form</field>
+        <field name="model">foodics.mock.order</field>
+        <field name="arch" type="xml">
+            <form string="Mock Order">
+                <header>
+                    <button name="action_simulate_accepted" type="object" string="Simulate: Accepted"/>
+                    <button name="action_simulate_closed" type="object" string="Simulate: Closed"/>
+                    <button name="action_simulate_declined" type="object" string="Simulate: Declined"/>
+                    <button name="action_simulate_missed_webhook" type="object"
+                            string="Simulate Missed Webhook"
+                            help="Changes the status but does NOT fire the webhook - use this to test foodics_order_sync's reconciliation cron / the Refresh Status button."/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="app_id"/>
+                        <field name="foodics_id"/>
+                        <field name="branch_id"/>
+                        <field name="order_type"/>
+                        <field name="total_price"/>
+                        <field name="status"/>
+                        <field name="state"/>
+                    </group>
+                    <field name="raw_payload" widget="text"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_mock_order" model="ir.actions.act_window">
+        <field name="name">Received Orders</field>
+        <field name="res_model">foodics.mock.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

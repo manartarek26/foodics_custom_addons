@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_tax_mapping_list" model="ir.ui.view">
+        <field name="name">foodics.tax.mapping.list</field>
+        <field name="model">foodics.tax.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Tax Mapping" editable="bottom" decoration-muted="not account_tax_id">
+                <field name="config_id" column_invisible="1"/>
+                <field name="name"/>
+                <field name="rate"/>
+                <field name="account_tax_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_tax_mapping" model="ir.actions.act_window">
+        <field name="name">Foodics Tax Mapping</field>
+        <field name="res_model">foodics.tax.mapping</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

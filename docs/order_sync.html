@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sending Orders to Foodics — A Plain-Language Guide</title>
+<style>
+  :root {
+    --ink: #23262f;
+    --muted: #666e7c;
+    --accent: #2a7d5f;
+    --accent-bg: #e9f6ef;
+    --line: #e6e6ea;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --warn: #9a6400;
+    --warn-bg: #fff5e0;
+    --bad: #a1273b;
+    --bad-bg: #fdecee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px 80px; }
+  header.page {
+    padding: 30px 24px;
+    background: linear-gradient(135deg, var(--accent), #4fae86);
+    color: white;
+    border-radius: 14px;
+    margin: 24px auto 32px;
+    max-width: 820px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header.page p { margin: 0; opacity: .92; }
+  h2 {
+    font-size: 1.25rem;
+    margin: 40px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  p { font-size: 1.02rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 18px 0;
+  }
+  .flow .box {
+    background: var(--accent-bg);
+    border: 1px solid #cfe9dc;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: .92rem;
+    color: var(--accent);
+  }
+  .flow .arrow { color: var(--muted); font-size: 1.2rem; }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .warn {
+    border-left: 4px solid var(--warn);
+    background: var(--warn-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .95rem; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; width: 30%; }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: #f0f1f5;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .88em;
+  }
+  .faq dt { font-weight: 700; margin-top: 16px; }
+  .faq dd { margin: 4px 0 0; color: var(--ink); }
+  footer { margin-top: 60px; color: var(--muted); font-size: .85rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Sending Orders to Foodics</h1>
+    <p>A plain-language explanation of what happens when you click "Send to Foodics", and why
+       there's a bit of automatic double-checking going on behind the scenes.</p>
+  </header>
+
+  <h2>The short version</h2>
+  <p>You open a Sale Order in Odoo, click <strong>Send to Foodics</strong>, and that order gets
+     created inside Foodics for the branch you picked - the same as if a cashier had rung it up
+     there directly. From that point on, Odoo keeps a little "tracking card" for that order (a
+     <em>Foodics Order</em> record) and tries to always know what's really happening to it on
+     Foodics' side, even if something goes wrong along the way.</p>
+
+  <h2>Step by step</h2>
+
+  <div class="flow">
+    <div class="box">You click "Send to Foodics"</div>
+    <div class="arrow">→</div>
+    <div class="box">Odoo builds the order</div>
+    <div class="arrow">→</div>
+    <div class="box">Odoo sends it to Foodics</div>
+    <div class="arrow">→</div>
+    <div class="box">Foodics confirms it arrived</div>
+  </div>
+
+  <div class="card">
+    <p>Odoo takes the products on your Sale Order, matches them to the equivalent products on the
+       Foodics menu, and picks a branch that's allowed to receive online orders. If a product on
+       your order hasn't been approved/linked as a Foodics product yet, Odoo stops and tells you
+       exactly which one, instead of sending a half-broken order.</p>
+  </div>
+
+  <h2>What the status on the order means</h2>
+  <table>
+    <tr><th>Status</th><th>What it means, in plain terms</th></tr>
+    <tr><td>Draft</td><td>Created in Odoo, not sent yet.</td></tr>
+    <tr><td>Pending</td><td>Sent to Foodics successfully - it's now sitting there waiting for the
+        restaurant to accept or decline it.</td></tr>
+    <tr><td>Active</td><td>The restaurant accepted it and is working on it.</td></tr>
+    <tr><td>Closed</td><td>Finished and paid for.</td></tr>
+    <tr><td>Declined / Void</td><td>The restaurant rejected or cancelled it.</td></tr>
+    <tr><td>Returned</td><td>The order was returned after being closed.</td></tr>
+    <tr><td>Error Sending</td><td>Odoo tried to send it but something went wrong (see below).</td></tr>
+  </table>
+
+  <h2>How Odoo finds out the status changed</h2>
+  <p>Once an order is sitting on Foodics' side, things happen to it that Odoo isn't directly
+     involved in - a cashier accepts it, prepares it, closes it. Foodics tells Odoo about these
+     changes itself, automatically, the moment they happen, using something called a
+     <strong>webhook</strong> - think of it as Foodics picking up the phone and calling Odoo to
+     say "hey, order #123 just got accepted", instead of Odoo having to keep calling Foodics every
+     few seconds to ask "anything new? anything new? anything new?". This is why the status
+     usually updates itself without anyone doing anything.</p>
+
+  <h2>...and what happens if that call never comes through</h2>
+  <p>Phone calls sometimes don't go through - a brief internet hiccup, a server restart, anything.
+     If Foodics tried to tell Odoo about a change and the message never arrived, the order would
+     just sit there showing an outdated status forever, with nobody noticing.</p>
+
+  <div class="warn">
+    <strong>The safety net:</strong> every 15 minutes, Odoo quietly checks in on any order that
+    hasn't been confirmed recently, and asks Foodics directly: "what's the real status of this
+    one?" If it finds a mismatch, it fixes the record automatically. You don't have to do
+    anything for this to happen - it's a scheduled task that just runs in the background
+    (Settings &gt; Technical &gt; Scheduled Actions &gt; "Foodics: Reconcile Pending Orders", if
+    you ever want to look at it or change how often it runs).
+  </div>
+
+  <p>If you ever want to check right away instead of waiting, open the order and click
+     <strong>Refresh Status from Foodics</strong>.</p>
+
+  <h2>"Needs Reconciliation" - what does that mean?</h2>
+  <p>Occasionally, when Odoo sends an order, the request itself fails to complete properly (a
+     timeout, a dropped connection) before Odoo gets a clear answer back. In that moment, Odoo
+     genuinely doesn't know whether Foodics received the order or not. Rather than guess - and
+     risk either creating the same order twice, or thinking it failed when it actually
+     succeeded - Odoo flags the order as <strong>"Needs Reconciliation"</strong> and asks Foodics
+     directly what really happened, either right away or on the next automatic check.</p>
+  <p>You'll see a small warning banner on the order when this flag is set. It's informational -
+     it clears itself as soon as Odoo has confirmed the real status, either by the automatic check
+     or by clicking "Refresh Status from Foodics" yourself.</p>
+
+  <div class="note">
+    One safeguard worth knowing about: every order gets a unique ID the moment it's created in
+    Odoo, <em>before</em> it's ever sent. If Odoo tries to send the same order a second time (say,
+    after that kind of failed attempt), Foodics recognizes the ID and says "you already sent me
+    this one" instead of creating a duplicate. Odoo treats that response as a signal to go check
+    the real status, not as a new error.
+  </div>
+
+  <h2>Frequently asked questions</h2>
+  <dl class="faq">
+    <dt>Do I need to do anything after clicking "Send to Foodics"?</dt>
+    <dd>No. The status will keep itself up to date on its own. Check the order later if you're
+        curious, but nothing is required from you.</dd>
+
+    <dt>What if I see "Error Sending"?</dt>
+    <dd>Open the order to see the error message - usually a missing product mapping or a branch
+        that isn't accepting online orders. Fix that, then click "Push to Foodics" again from the
+        order.</dd>
+
+    <dt>What if a status looks stuck or wrong?</dt>
+    <dd>Click "Refresh Status from Foodics" on the order to check right now, instead of waiting
+        for the next automatic check.</dd>
+
+    <dt>Can an order get sent to Foodics twice by mistake?</dt>
+    <dd>No - see the safeguard above. Clicking "Send to Foodics" again on an order that already
+        went through successfully won't create a second one.</dd>
+  </dl>
+
+  <footer>Foodics ↔ Odoo 18 integration — internal module documentation.</footer>
+</div>
+</body>
+</html>

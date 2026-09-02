@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_product_mapping_search" model="ir.ui.view">
+        <field name="name">foodics.product.mapping.search</field>
+        <field name="model">foodics.product.mapping</field>
+        <field name="arch" type="xml">
+            <search string="Foodics Product Mapping">
+                <field name="name"/>
+                <field name="sku"/>
+                <filter name="to_approve" string="To Approve" domain="[('state', '=', 'to_approve')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
+                <filter name="matched_existing" string="Matched Existing Product"
+                        domain="[('matched_existing_product', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_foodics_product_mapping_list" model="ir.ui.view">
+        <field name="name">foodics.product.mapping.list</field>
+        <field name="model">foodics.product.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Product Mapping" decoration-muted="state == 'rejected'">
+                <field name="name"/>
+                <field name="sku"/>
+                <field name="category_name"/>
+                <field name="price"/>
+                <field name="is_active"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'to_approve'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="matched_existing_product"/>
+                <field name="product_id"/>
+                <button name="action_approve" type="object" string="Approve" icon="fa-check"
+                        invisible="state != 'to_approve'"/>
+                <button name="action_reject" type="object" string="Reject" icon="fa-times"
+                        invisible="state != 'to_approve'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_product_mapping_form" model="ir.ui.view">
+        <field name="name">foodics.product.mapping.form</field>
+        <field name="model">foodics.product.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Product Mapping">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="state != 'to_approve'"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'to_approve'"/>
+                    <button name="action_reset_to_approve" type="object" string="Send Back to Queue"
+                            invisible="state != 'rejected'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="to_approve,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not matched_existing_product">
+                        This was matched to a product that already existed in Odoo instead of
+                        creating a new one - see the note below.
+                    </div>
+                    <group>
+                        <group string="From Foodics (read-only)">
+                            <field name="name"/>
+                            <field name="config_id"/>
+                            <field name="foodics_id"/>
+                            <field name="sku"/>
+                            <field name="category_name"/>
+                            <field name="price"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group string="Result of approval">
+                            <field name="product_id" readonly="1"/>
+                            <field name="matched_existing_product" readonly="1"/>
+                            <field name="note" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_product_mapping" model="ir.actions.act_window">
+        <field name="name">Foodics Product Mapping</field>
+        <field name="res_model">foodics.product.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_to_approve': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing waiting for approval right now</p>
+            <p>Products land here every time "Sync Menu" runs on a Foodics Connection. Whether
+               they need your approval before becoming a real Odoo product depends on the
+               "Foodics products require approval" setting (Settings &gt; General Settings &gt;
+               Foodics).</p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_payment_method_list" model="ir.ui.view">
+        <field name="name">foodics.payment.method.list</field>
+        <field name="model">foodics.payment.method</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Payment Methods" editable="bottom" decoration-muted="not pos_payment_method_id">
+                <field name="config_id" column_invisible="1"/>
+                <field name="name"/>
+                <field name="method_type"/>
+                <field name="code"/>
+                <field name="is_active"/>
+                <field name="pos_payment_method_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_payment_method" model="ir.actions.act_window">
+        <field name="name">Foodics Payment Methods</field>
+        <field name="res_model">foodics.payment.method</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Foodics Base &amp; Mock — Module Guide</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --muted: #5b6472;
+    --accent: #5b2eff;
+    --accent-bg: #f1eeff;
+    --line: #e3e6ec;
+    --bg: #fbfbfd;
+    --card: #ffffff;
+    --ok: #1a7f4b;
+    --ok-bg: #e8f7ef;
+    --warn: #9a6400;
+    --warn-bg: #fff5e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.page {
+    padding: 28px 24px;
+    background: linear-gradient(135deg, var(--accent), #8a5cff);
+    color: white;
+    border-radius: 14px;
+    margin: 24px auto 32px;
+    max-width: 880px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header.page p { margin: 0; opacity: .9; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 44px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.05rem; margin: 24px 0 8px; color: var(--ink); }
+  p { color: var(--ink); }
+  .lede { color: var(--muted); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .pill {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .pill.mock { background: var(--warn-bg); color: var(--warn); }
+  code, .code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: #f0f1f5;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .88em;
+  }
+  pre {
+    background: #14161f;
+    color: #e8eaf2;
+    padding: 14px 16px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  ol, ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: .95rem;
+  }
+  .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 10px 0;
+  }
+  .step .num {
+    flex: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700;
+  }
+  footer { margin-top: 60px; color: var(--muted); font-size: .85rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Foodics Base &amp; Foodics Mock</h1>
+    <p>What these two modules do, why they're split the way they are, and how the branch/product
+       mapping actually works under the hood.</p>
+  </header>
+
+  <p class="lede">This covers <code>foodics_base</code> and <code>foodics_mock</code>. Order
+     pushing/status-sync lives in a separate module, <code>foodics_order_sync</code> — see
+     <code>order_sync.html</code> for a plain-language walkthrough of that one instead.</p>
+
+  <h2>1. The shape of it</h2>
+  <div class="grid">
+    <div class="card">
+      <span class="pill">foodics_base</span>
+      <p>The reusable foundation. Owns the connection to Foodics, the OAuth login flow, branches,
+         product mapping/approval, and a generic place for webhooks to land. Any future
+         integration (accounting, purchase, inventory, ...) is meant to build on this, not
+         duplicate it.</p>
+    </div>
+    <div class="card">
+      <span class="pill mock">foodics_mock</span>
+      <p>A stand-in for the real Foodics servers, running inside your own Odoo. Same URLs shape,
+         same OAuth dance, same response shapes - just fake data, so you can build and test
+         everything before Foodics hands you real sandbox credentials.</p>
+    </div>
+  </div>
+  <div class="note">
+    <strong>Important:</strong> <code>foodics_mock</code> does not depend on <code>foodics_base</code>,
+    and <code>foodics_base</code> does not depend on it either. They only ever talk to each other
+    over plain HTTP, through the <em>Custom API/Authorization Base URL</em> fields on the Foodics
+    Connection record - exactly the same way <code>foodics_base</code> would talk to the real
+    Foodics. That means switching to production later is just: fill in real credentials, clear
+    those two URL fields, and (optionally) uninstall <code>foodics_mock</code>. Nothing about
+    <code>foodics_base</code> changes.
+  </div>
+
+  <h2>2. The Connection (OAuth)</h2>
+  <p>One record, <strong>Foodics &gt; Connection</strong>, holds everything needed to talk to one
+     Foodics business account: environment (sandbox/production), your app's Client ID/Secret, and
+     the access token once you've authorized. Clicking <em>Authorize with Foodics</em> opens
+     Foodics' consent screen in a new tab; once approved, Foodics redirects back to
+     <code>/foodics/oauth/callback</code>, which exchanges the code for an access token
+     automatically. Every other button (<em>Sync Branches</em>, <em>Sync Menu</em>, ...) and every
+     other module's API calls go through this one record's <code>_get</code> / <code>_post</code>
+     helpers.</p>
+
+  <h2>3. Branches: how Foodics and Odoo agree on a "place"</h2>
+  <p>A Foodics <strong>Branch</strong> is a physical restaurant/store location: it has opening
+     hours, a flag for whether it accepts online orders, and its own tax settings on Foodics'
+     side. Odoo's closest equivalent to "a physical place stock moves in and out of, and sales
+     happen at" is a <strong>Warehouse</strong>.</p>
+
+  <p>Foodics has no concept of your Odoo database, so it cannot tell us <em>which</em> warehouse a
+     branch corresponds to - that's a judgment call only a human can make, once, the same way you
+     decide which Odoo product a Foodics menu item really is. That's why, after clicking
+     <em>Sync Branches</em>, each <code>foodics.branch</code> record shows up with its Foodics
+     data filled in (name, reference, opening hours, "receives online orders") but its
+     <strong>Odoo Warehouse</strong> field empty - you set that once, and it sticks across future
+     syncs.</p>
+
+  <div class="card">
+    <h3>What that mapping is used for</h3>
+    <ul>
+      <li>When an order is pushed for a branch, its mapped Warehouse (if any) is copied onto the
+          related Sale Order, so stock/reporting land in the right place.</li>
+      <li>A branch flagged "Receives Online Orders = No" on Foodics' side is never offered/used as
+          a destination when sending an order - Foodics would reject it anyway.</li>
+      <li>A branch's Company is derived automatically from its mapped Warehouse (a Warehouse
+          always belongs to exactly one Company in Odoo).</li>
+    </ul>
+  </div>
+
+  <h2>4. Product Mapping &amp; the approval queue</h2>
+  <p>Clicking <em>Sync Menu</em> pulls every product from Foodics and creates one
+     <strong>Foodics Product Mapping</strong> row per item - always, whether or not it's approved
+     yet. What happens next depends on one setting:</p>
+
+  <table>
+    <tr><th>Settings &gt; General Settings &gt; Foodics</th><th>Behavior</th></tr>
+    <tr>
+      <td>"Foodics products require approval" <strong>ON</strong> (default)</td>
+      <td>New items wait with status <em>To Approve</em> in <strong>Foodics &gt; Product
+          Mapping</strong> until someone clicks <em>Approve</em> (or <em>Reject</em>).</td>
+    </tr>
+    <tr>
+      <td>"Foodics products require approval" <strong>OFF</strong></td>
+      <td>New items are approved immediately - the matching Odoo product is created/linked as
+          soon as the sync finishes, no human step in between.</td>
+    </tr>
+  </table>
+
+  <h3>What "approving" actually does</h3>
+  <ol>
+    <li>It looks for an Odoo product whose <em>Internal Reference</em> (or, failing that, its
+        barcode) matches the Foodics item's SKU.</li>
+    <li>If one is found, that existing product is <strong>linked</strong> - no duplicate is
+        created, and the mapping is marked "Matched Existing Product" so it's obvious later why
+        no new product shows up.</li>
+    <li>If none is found, a new <code>product.product</code> is created from the Foodics data.</li>
+    <li>Either way, the resulting product gets <code>is_foodics_product = True</code> (shown as
+        "From Foodics" on the product form) plus a link back to the mapping row that created it -
+        so it is always obvious, on the product itself, that Foodics is the source.</li>
+  </ol>
+
+  <div class="note">
+    <strong>On duplicates:</strong> two different Foodics items can never create two mapping rows
+    for the <em>same</em> Foodics ID (enforced at the database level). And because approval always
+    checks for a matching Odoo product first, if two Foodics items happen to share a SKU, the
+    second one approved links to the product the first one created, instead of creating a second
+    copy.
+  </div>
+
+  <h2>5. Webhooks: one door, many rooms</h2>
+  <p><code>foodics_base</code> exposes a single webhook URL per connection
+     (<code>/foodics/webhook/&lt;secret&gt;</code>, shown on the Connection record). Every call
+     Foodics makes to it - no matter the event - is saved first as a
+     <strong>Foodics Webhook Log</strong> row, then dispatched by event name.</p>
+  <p>A module that cares about a specific event (say, <code>foodics_order_sync</code> caring about
+     <code>application.order.updated</code>) reacts to it simply by inheriting
+     <code>foodics.webhook.log</code> and adding a method called
+     <code>_handle_application_order_updated</code>. <code>foodics_base</code> never needs to know
+     that method, or that module, exists - which is the point: new integrations plug into
+     webhooks without this module changing at all.</p>
+  <pre><code># in some future module, e.g. foodics_accounting
+class FoodicsWebhookLog(models.Model):
+    _inherit = 'foodics.webhook.log'
+
+    def _handle_some_new_event(self):
+        ...</code></pre>
+
+  <h2>6. Using foodics_mock day to day</h2>
+  <div class="step"><span class="num">1</span>
+    <p>Create a <strong>Foodics Mock &gt; Fake App</strong> - it's your stand-in for the developer
+       app Foodics would otherwise create for you. It generates its own Client ID/Secret; you
+       choose the Redirect URI.</p>
+  </div>
+  <div class="step"><span class="num">2</span>
+    <p>On the real <strong>Foodics &gt; Connection</strong> record, copy in that Client ID/Secret
+       and Redirect URI, and point <em>Custom API Base URL</em> /
+       <em>Custom Authorization Base URL</em> at the mock server's routes
+       (<code>/foodics_mock/v5</code> and <code>/foodics_mock</code>).</p>
+  </div>
+  <div class="step"><span class="num">3</span>
+    <p>Authorize, sync branches/menu, map a warehouse and a product or two, and you have a fully
+       working end-to-end setup with realistic (if fake) data.</p>
+  </div>
+  <div class="step"><span class="num">4</span>
+    <p>Optional: paste the Connection's <em>Webhook URL</em> into the Fake App's
+       <em>Webhook URL</em> field to also exercise <code>foodics_order_sync</code>'s webhook
+       handling and reconciliation cron - see <code>order_sync.html</code>.</p>
+  </div>
+  <div class="step"><span class="num">5</span>
+    <p>When real credentials arrive: clear the two <em>Custom ... Base URL</em> fields, put in the
+       real Client ID/Secret, re-authorize, and uninstall <code>foodics_mock</code>. Nothing else
+       changes.</p>
+  </div>
+
+  <footer>Foodics ↔ Odoo 18 integration — internal module documentation.</footer>
+</div>
+</body>
+</html>

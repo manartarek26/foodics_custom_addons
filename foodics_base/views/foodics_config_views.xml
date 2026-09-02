@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_config_form" model="ir.ui.view">
+        <field name="name">foodics.config.form</field>
+        <field name="model">foodics.config</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Connection">
+                <header>
+                    <button name="action_start_authorization" type="object"
+                            string="Authorize with Foodics" class="btn-primary"
+                            invisible="is_connected"/>
+                    <button name="action_test_connection" type="object"
+                            string="Test Connection (whoami)"
+                            invisible="not is_connected"/>
+                    <button name="action_fetch_settings" type="object"
+                            string="Fetch Business Settings"
+                            invisible="not is_connected"/>
+                    <button name="action_sync_branches" type="object"
+                            string="Sync Branches"
+                            invisible="not is_connected"/>
+                    <button name="action_sync_menu" type="object"
+                            string="Sync Menu"
+                            invisible="not is_connected"/>
+                    <button name="action_revoke_token" type="object"
+                            string="Revoke Token"
+                            invisible="not is_connected" confirm="Revoke this Foodics access token?"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Connected" bg_color="text-bg-success"
+                            invisible="not is_connected"/>
+                    <widget name="web_ribbon" title="Not connected" bg_color="text-bg-danger"
+                            invisible="is_connected"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_branches" type="object" class="oe_stat_button" icon="fa-building">
+                            <field name="branch_count" widget="statinfo" string="Branches"/>
+                        </button>
+                        <button name="action_open_product_mappings" type="object" class="oe_stat_button"
+                                icon="fa-cutlery">
+                            <field name="product_mapping_count" widget="statinfo" string="Product Mapping"/>
+                        </button>
+                        <!-- foodics_order_sync adds an "Orders" stat button here -->
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Environment">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="environment"/>
+                            <field name="custom_api_base_url"
+                                   placeholder="e.g. http://localhost:8069/foodics_mock/v5 (leave empty for real Foodics)"/>
+                            <field name="custom_console_base_url"
+                                   placeholder="e.g. http://localhost:8069/foodics_mock (leave empty for real Foodics)"/>
+                        </group>
+                        <group string="App Credentials (given to you by Foodics)">
+                            <field name="client_id"/>
+                            <field name="client_secret" password="True"/>
+                            <field name="redirect_uri" placeholder="https://your-odoo-domain.com/foodics/oauth/callback"/>
+                        </group>
+                    </group>
+                    <group string="Token">
+                        <field name="access_token" readonly="1" password="True"/>
+                        <field name="token_type" readonly="1"/>
+                        <field name="is_connected" invisible="1"/>
+                    </group>
+                    <group string="Webhooks">
+                        <field name="webhook_url" readonly="1"/>
+                        <field name="webhook_secret" readonly="1" password="True"/>
+                        <button name="action_regenerate_webhook_secret" type="object"
+                                string="Regenerate Webhook Secret" class="btn-link"
+                                confirm="The old webhook URL will stop working immediately. Continue?"/>
+                    </group>
+                    <group string="Business Info (from Foodics)">
+                        <field name="business_name" readonly="1"/>
+                        <field name="business_reference" readonly="1"/>
+                        <field name="business_currency" readonly="1"/>
+                        <field name="business_timezone" readonly="1"/>
+                        <field name="tax_inclusive_pricing" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_foodics_config_list" model="ir.ui.view">
+        <field name="name">foodics.config.list</field>
+        <field name="model">foodics.config</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Connections">
+                <field name="name"/>
+                <field name="environment"/>
+                <field name="is_connected"/>
+                <field name="business_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_config" model="ir.actions.act_window">
+        <field name="name">Foodics Connection</field>
+        <field name="res_model">foodics.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

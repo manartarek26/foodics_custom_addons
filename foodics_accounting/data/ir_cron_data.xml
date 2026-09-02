@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_cron_foodics_pull_pos_orders" model="ir.cron">
+        <field name="name">Foodics: Pull POS Orders</field>
+        <field name="model_id" ref="model_foodics_config"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_pull_orders()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_foodics_retry_pos_invoices" model="ir.cron">
+        <field name="name">Foodics: Retry Pending Invoices</field>
+        <field name="model_id" ref="model_foodics_pos_order"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_retry_needs_review()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

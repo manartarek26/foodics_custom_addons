@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_branch_form_accounting" model="ir.ui.view">
+        <field name="name">foodics.branch.form.accounting</field>
+        <field name="model">foodics.branch</field>
+        <field name="inherit_id" ref="foodics_base.view_foodics_branch_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='warehouse_id']" position="after">
+                <field name="pos_config_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
