@@ -1,0 +1,11 @@
+*.pyc
+__pycache__/
+# Pycharm
+.idea
+# Visual Studio cache/options directory
+.vs/
+.vscode
+#macOS
+/.DS_Store
+*.DS_Store
+
