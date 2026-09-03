@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extend the existing Foodics Connection form (foodics_base)
+         with purchase-side buttons/settings - purely additive xpath. -->
+    <record id="view_foodics_config_form_purchase" model="ir.ui.view">
+        <field name="name">foodics.config.form.purchase</field>
+        <field name="model">foodics.config</field>
+        <field name="inherit_id" ref="foodics_base.view_foodics_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_suppliers" type="object" class="oe_stat_button"
+                        icon="fa-truck">
+                    <field name="supplier_count" widget="statinfo" string="Suppliers"/>
+                </button>
+                <button name="action_open_items" type="object" class="oe_stat_button"
+                        icon="fa-lemon-o">
+                    <field name="item_count" widget="statinfo" string="Inventory Items"/>
+                </button>
+                <button name="action_open_levels" type="object" class="oe_stat_button"
+                        icon="fa-database">
+                    <field name="level_count" widget="statinfo" string="Stock Levels"/>
+                </button>
+                <button name="action_open_sync_log" type="object" class="oe_stat_button"
+                        icon="fa-exchange">
+                    <field name="sync_log_count" widget="statinfo" string="Sync Log"/>
+                </button>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_sync_purchase_suppliers" type="object"
+                        string="Sync Suppliers" invisible="not is_connected"/>
+                <button name="action_sync_inventory_items" type="object"
+                        string="Sync Inventory Items" invisible="not is_connected"/>
+                <button name="action_pull_po_statuses" type="object"
+                        string="Pull PO Statuses" invisible="not is_connected"/>
+                <button name="action_pull_cost_adjustments" type="object"
+                        string="Pull Cost Adjustments" invisible="not is_connected"/>
+                <button name="action_pull_inventory_levels" type="object"
+                        string="Pull Stock Levels" invisible="not is_connected"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Purchasing Options">
+                    <group>
+                        <field name="po_default_creator_id"/>
+                        <field name="po_auto_submit"/>
+                        <field name="po_price_tolerance_pct"/>
+                    </group>
+                    <group>
+                        <field name="po_autocreate_items"/>
+                        <field name="po_auto_update_product_cost"/>
+                        <field name="po_statuses_synced_through" readonly="1"/>
+                        <field name="ca_synced_through" readonly="1"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

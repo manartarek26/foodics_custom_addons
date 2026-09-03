@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foodics_mock_inventory_item,foodics.mock.inventory.item,model_foodics_mock_inventory_item,base.group_user,1,1,1,1
+access_foodics_mock_supplier,foodics.mock.supplier,model_foodics_mock_supplier,base.group_user,1,1,1,1
+access_foodics_mock_supplier_item,foodics.mock.supplier.item,model_foodics_mock_supplier_item,base.group_user,1,1,1,1
+access_foodics_mock_purchase_order,foodics.mock.purchase.order,model_foodics_mock_purchase_order,base.group_user,1,1,1,1
+access_foodics_mock_purchase_order_line,foodics.mock.purchase.order.line,model_foodics_mock_purchase_order_line,base.group_user,1,1,1,1
+access_foodics_mock_inventory_transaction,foodics.mock.inventory.transaction,model_foodics_mock_inventory_transaction,base.group_user,1,1,1,1
+access_foodics_mock_inventory_transaction_line,foodics.mock.inventory.transaction.line,model_foodics_mock_inventory_transaction_line,base.group_user,1,1,1,1
+access_foodics_mock_cost_adjustment,foodics.mock.cost.adjustment,model_foodics_mock_cost_adjustment,base.group_user,1,1,1,1
+access_foodics_mock_cost_adjustment_line,foodics.mock.cost.adjustment.line,model_foodics_mock_cost_adjustment_line,base.group_user,1,1,1,1

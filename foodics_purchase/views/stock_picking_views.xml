@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Stock Picking - Foodics transaction mirror -->
+    <record id="view_picking_form_foodics" model="ir.ui.view">
+        <field name="name">stock.picking.form.foodics</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Foodics" name="foodics"
+                      invisible="picking_type_code not in ('incoming', 'outgoing')">
+                    <group>
+                        <group string="Foodics Transaction">
+                            <field name="foodics_tx_id"/>
+                            <field name="foodics_sync_state"/>
+                        </group>
+                        <group string="Related Purchase Order">
+                            <field name="purchase_id" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_picking_list_foodics" model="ir.ui.view">
+        <field name="name">stock.picking.list.foodics</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="foodics_sync_state" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

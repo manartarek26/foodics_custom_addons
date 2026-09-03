@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_foodics_mock_item_list" model="ir.ui.view">
+        <field name="name">foodics.mock.inventory.item.list</field>
+        <field name="model">foodics.mock.inventory.item</field>
+        <field name="arch" type="xml">
+            <list string="Mock Inventory Items">
+                <field name="foodics_id"/>
+                <field name="name"/>
+                <field name="sku"/>
+                <field name="storage_unit"/>
+                <field name="storage_to_ingredient_factor"/>
+                <field name="cost"/>
+                <field name="deleted_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_supplier_list" model="ir.ui.view">
+        <field name="name">foodics.mock.supplier.list</field>
+        <field name="model">foodics.mock.supplier</field>
+        <field name="arch" type="xml">
+            <list string="Mock Suppliers">
+                <field name="foodics_id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="email"/>
+                <field name="deleted_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_po_list" model="ir.ui.view">
+        <field name="name">foodics.mock.purchase.order.list</field>
+        <field name="model">foodics.mock.purchase.order</field>
+        <field name="arch" type="xml">
+            <list string="Received Purchase Orders (Mock)">
+                <field name="foodics_id"/>
+                <field name="reference"/>
+                <field name="status"/>
+                <field name="supplier_id"/>
+                <field name="branch_id"/>
+                <field name="additional_cost"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_tx_list" model="ir.ui.view">
+        <field name="name">foodics.mock.inventory.transaction.list</field>
+        <field name="model">foodics.mock.inventory.transaction</field>
+        <field name="arch" type="xml">
+            <list string="Received Inventory Transactions (Mock)">
+                <field name="foodics_id"/>
+                <field name="reference"/>
+                <field name="type"/>
+                <field name="status"/>
+                <field name="purchase_order_id"/>
+                <field name="branch_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_mock_ca_list" model="ir.ui.view">
+        <field name="name">foodics.mock.cost.adjustment.list</field>
+        <field name="model">foodics.mock.cost.adjustment</field>
+        <field name="arch" type="xml">
+            <list string="Received Cost Adjustments (Mock)">
+                <field name="foodics_id"/>
+                <field name="reference"/>
+                <field name="status"/>
+                <field name="branch_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_mock_purchase_order" model="ir.actions.act_window">
+        <field name="name">Received Purchase Orders</field>
+        <field name="res_model">foodics.mock.purchase.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_foodics_mock_inventory_item" model="ir.actions.act_window">
+        <field name="name">Mock Inventory Items</field>
+        <field name="res_model">foodics.mock.inventory.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_foodics_mock_supplier" model="ir.actions.act_window">
+        <field name="name">Mock Suppliers</field>
+        <field name="res_model">foodics.mock.supplier</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_foodics_mock_inventory_transaction" model="ir.actions.act_window">
+        <field name="name">Received Inventory Transactions</field>
+        <field name="res_model">foodics.mock.inventory.transaction</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_foodics_mock_cost_adjustment" model="ir.actions.act_window">
+        <field name="name">Received Cost Adjustments</field>
+        <field name="res_model">foodics.mock.cost.adjustment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu items hang off the existing "Foodics Mock" root menu defined
+         by foodics_mock (referenced by xml_id - purely additive). -->
+    <menuitem id="menu_foodics_mock_po" name="Received Purchase Orders"
+              parent="foodics_mock.menu_foodics_mock_root"
+              action="action_foodics_mock_purchase_order" sequence="30"/>
+    <menuitem id="menu_foodics_mock_tx" name="Received Inventory Transactions"
+              parent="foodics_mock.menu_foodics_mock_root"
+              action="action_foodics_mock_inventory_transaction" sequence="40"/>
+    <menuitem id="menu_foodics_mock_ca" name="Received Cost Adjustments"
+              parent="foodics_mock.menu_foodics_mock_root"
+              action="action_foodics_mock_cost_adjustment" sequence="50"/>
+    <menuitem id="menu_foodics_mock_items" name="Mock Inventory Items"
+              parent="foodics_mock.menu_foodics_mock_root"
+              action="action_foodics_mock_inventory_item" sequence="60"/>
+    <menuitem id="menu_foodics_mock_suppliers" name="Mock Suppliers"
+              parent="foodics_mock.menu_foodics_mock_root"
+              action="action_foodics_mock_supplier" sequence="70"/>
+
+</odoo>

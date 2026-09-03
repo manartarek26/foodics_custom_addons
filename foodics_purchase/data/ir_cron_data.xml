@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Replay queued pushes (receipts, PO creates/updates/cancels)
+             that failed transiently; exponential backoff lives on each
+             foodics.sync.log row. -->
+        <record id="ir_cron_foodics_retry_sync" model="ir.cron">
+            <field name="name">Foodics: Retry Failed Purchase Syncs</field>
+            <field name="model_id" ref="foodics_purchase.model_foodics_sync_log"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_retry_pending()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Poll PO statuses + cost adjustments (docs have no purchase
+             webhooks; list endpoints expose updated_after filters). -->
+        <record id="ir_cron_foodics_poll_purchases" model="ir.cron">
+            <field name="name">Foodics: Pull PO Statuses &amp; Cost Adjustments</field>
+            <field name="model_id" ref="foodics_base.model_foodics_config"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_poll_purchases()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Housekeeping for the audit trail -->
+        <record id="ir_cron_foodics_log_cleanup" model="ir.cron">
+            <field name="name">Foodics: Cleanup Old Sync Logs</field>
+            <field name="model_id" ref="foodics_purchase.model_foodics_sync_log"/>
+            <field name="state">code</field>
+            <field name="code">model._purge_old_logs()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

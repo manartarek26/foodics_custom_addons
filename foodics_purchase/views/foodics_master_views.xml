@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         foodics.supplier
+         ================================================================ -->
+    <record id="view_foodics_supplier_list" model="ir.ui.view">
+        <field name="name">foodics.supplier.list</field>
+        <field name="model">foodics.supplier</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Suppliers" decoration-info="deleted_in_foodics">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="email"/>
+                <field name="contact_name"/>
+                <field name="partner_id"/>
+                <field name="deleted_in_foodics" optional="hide"/>
+                <field name="synced_at" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_supplier_form" model="ir.ui.view">
+        <field name="name">foodics.supplier.form</field>
+        <field name="model">foodics.supplier</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Supplier">
+                <sheet>
+                    <widget name="web_ribbon" title="Deleted in Foodics"
+                            bg_color="text-bg-danger" invisible="not deleted_in_foodics"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Foodics Data">
+                            <field name="config_id"/>
+                            <field name="foodics_id"/>
+                            <field name="code"/>
+                            <field name="contact_name"/>
+                            <field name="email"/>
+                            <field name="phone"/>
+                            <field name="tags"/>
+                        </group>
+                        <group string="Odoo Mapping">
+                            <field name="partner_id"/>
+                            <field name="active" invisible="1"/>
+                            <field name="deleted_in_foodics"/>
+                            <field name="synced_at"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Supplied Items">
+                            <field name="item_ids">
+                                <list editable="bottom">
+                                    <field name="item_id"/>
+                                    <field name="order_unit"/>
+                                    <field name="order_to_storage_factor"/>
+                                    <field name="minimum_order_quantity"/>
+                                    <field name="cost"/>
+                                    <field name="code"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_supplier" model="ir.actions.act_window">
+        <field name="name">Foodics Suppliers</field>
+        <field name="res_model">foodics.supplier</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ================================================================
+         foodics.inventory.item
+         ================================================================ -->
+    <record id="view_foodics_inventory_item_list" model="ir.ui.view">
+        <field name="name">foodics.inventory.item.list</field>
+        <field name="model">foodics.inventory.item</field>
+        <field name="arch" type="xml">
+            <list string="Foodics Inventory Items"
+                  decoration-warning="not uom_mapped">
+                <field name="name"/>
+                <field name="sku"/>
+                <field name="storage_unit"/>
+                <field name="odoo_uom_id"/>
+                <field name="uom_mapped" column_invisible="1"/>
+                <field name="product_id"/>
+                <field name="cost"/>
+                <field name="minimum_level" optional="show"/>
+                <field name="deleted_in_foodics" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_inventory_item_form" model="ir.ui.view">
+        <field name="name">foodics.inventory.item.form</field>
+        <field name="model">foodics.inventory.item</field>
+        <field name="arch" type="xml">
+            <form string="Foodics Inventory Item">
+                <sheet>
+                    <widget name="web_ribbon" title="Deleted in Foodics"
+                            bg_color="text-bg-danger" invisible="not deleted_in_foodics"/>
+                    <widget name="web_ribbon" title="UoM not mapped"
+                            bg_color="text-bg-warning" invisible="uom_mapped"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Foodics Data">
+                            <field name="config_id"/>
+                            <field name="foodics_id"/>
+                            <field name="sku"/>
+                            <field name="barcode"/>
+                            <field name="storage_unit"/>
+                            <field name="ingredient_unit"/>
+                            <field name="storage_to_ingredient_factor"/>
+                            <field name="costing_method"/>
+                            <field name="cost"/>
+                            <field name="is_product"/>
+                            <field name="category_name"/>
+                            <label for="minimum_level" string="Levels (min / max / par)"/>
+                            <div class="o_row">
+                                <field name="minimum_level"/> /
+                                <field name="maximum_level"/> /
+                                <field name="par_level"/>
+                            </div>
+                        </group>
+                        <group string="Odoo Mapping">
+                            <field name="product_id"
+                                   context="{'default_purchase_ok': True, 'default_sale_ok': False}"/>
+                            <field name="odoo_uom_id"/>
+                            <field name="uom_mapped" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="deleted_in_foodics"/>
+                            <field name="synced_at"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Supplied By">
+                            <field name="supplier_line_ids">
+                                <list editable="bottom">
+                                    <field name="supplier_id"/>
+                                    <field name="order_unit"/>
+                                    <field name="order_to_storage_factor"/>
+                                    <field name="minimum_order_quantity"/>
+                                    <field name="cost"/>
+                                    <field name="code"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_inventory_item" model="ir.actions.act_window">
+        <field name="name">Foodics Inventory Items</field>
+        <field name="res_model">foodics.inventory.item</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <!-- ================================================================
+         foodics.inventory.level
+         ================================================================ -->
+    <record id="view_foodics_inventory_level_list" model="ir.ui.view">
+        <field name="name">foodics.inventory.level.list</field>
+        <field name="model">foodics.inventory.level</field>
+        <field name="arch" type="xml">
+            <list string="Stock Levels (Foodics)"
+                  decoration-danger="below_minimum">
+                <field name="branch_id"/>
+                <field name="item_id"/>
+                <field name="quantity"/>
+                <field name="cost_per_unit"/>
+                <field name="below_minimum"/>
+                <field name="fetched_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_foodics_inventory_level" model="ir.actions.act_window">
+        <field name="name">Stock Levels (Foodics)</field>
+        <field name="res_model">foodics.inventory.level</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ================================================================
+         foodics.sync.log
+         ================================================================ -->
+    <record id="view_foodics_sync_log_list" model="ir.ui.view">
+        <field name="name">foodics.sync.log.list</field>
+        <field name="model">foodics.sync.log</field>
+        <field name="arch" type="xml">
+            <list string="Purchase Sync Log" decoration-danger="state == 'error'"
+                  decoration-muted="state == 'failed'"
+                  decoration-success="state == 'done'">
+                <field name="create_date"/>
+                <field name="direction"/>
+                <field name="operation"/>
+                <field name="endpoint"/>
+                <field name="state"/>
+                <field name="retryable" optional="hide"/>
+                <field name="retry_count" optional="hide"/>
+                <field name="next_retry" optional="hide"/>
+                <field name="error_message" optional="show"/>
+                <button name="action_retry" type="object" icon="fa-refresh"
+                        string="Retry" invisible="state != 'error'" help="Replay now"/>
+                <button name="action_open_record" type="object" icon="fa-external-link"
+                        string="Open Record" invisible="not res_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foodics_sync_log_form" model="ir.ui.view">
+        <field name="name">foodics.sync.log.form</field>
+        <field name="model">foodics.sync.log</field>
+        <field name="arch" type="xml">
+            <form string="Sync Log Entry">
+                <header>
+                    <button name="action_retry" type="object" class="btn-primary"
+                            string="Retry Now" invisible="state != 'error'"/>
+                    <button name="action_open_record" type="object"
+                            string="Open Related Record" invisible="not res_id"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="config_id"/>
+                            <field name="direction"/>
+                            <field name="operation"/>
+                            <field name="method"/>
+                            <field name="endpoint"/>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="foodics_id"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="http_status"/>
+                            <field name="retryable"/>
+                            <field name="retry_count"/>
+                            <field name="next_retry"/>
+                            <field name="last_attempt"/>
+                        </group>
+                    </group>
+                    <group string="Error">
+                        <field name="error_message" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Request">
+                            <field name="request_payload" widget="ace"/>
+                        </page>
+                        <page string="Response">
+                            <field name="response_payload" widget="ace"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_foodics_sync_log" model="ir.actions.act_window">
+        <field name="name">Purchase Sync Log</field>
+        <field name="res_model">foodics.sync.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

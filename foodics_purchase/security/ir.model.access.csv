@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foodics_supplier,foodics.supplier,model_foodics_supplier,base.group_user,1,1,1,1
+access_foodics_supplier_item,foodics.supplier.item,model_foodics_supplier_item,base.group_user,1,1,1,1
+access_foodics_inventory_item,foodics.inventory.item,model_foodics_inventory_item,base.group_user,1,1,1,1
+access_foodics_inventory_level,foodics.inventory.level,model_foodics_inventory_level,base.group_user,1,1,1,1
+access_foodics_sync_log,foodics.sync.log,model_foodics_sync_log,base.group_user,1,1,1,1

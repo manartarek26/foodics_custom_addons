@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_foodics_mock_po_ref" model="ir.sequence">
+            <field name="name">Foodics Mock PO Reference</field>
+            <field name="code">foodics.mock.po.ref</field>
+            <field name="prefix">PO-</field>
+            <field name="padding">6</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        <record id="seq_foodics_mock_tx_ref" model="ir.sequence">
+            <field name="name">Foodics Mock Transaction Reference</field>
+            <field name="code">foodics.mock.tx.ref</field>
+            <field name="prefix">PUR-</field>
+            <field name="padding">7</field>
+            <field name="implementation">no_gap</field>
+        </record>
+    </data>
+</odoo>

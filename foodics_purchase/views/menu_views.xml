@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_foodics_purchase_root" name="Foodics Purchasing"
+              sequence="72"/>
+
+    <menuitem id="menu_foodics_purchase_suppliers" name="Suppliers"
+              parent="menu_foodics_purchase_root"
+              action="action_foodics_supplier" sequence="10"/>
+    <menuitem id="menu_foodics_purchase_items" name="Inventory Items"
+              parent="menu_foodics_purchase_root"
+              action="action_foodics_inventory_item" sequence="20"/>
+    <menuitem id="menu_foodics_purchase_levels" name="Stock Levels (Foodics)"
+              parent="menu_foodics_purchase_root"
+              action="action_foodics_inventory_level" sequence="30"/>
+    <menuitem id="menu_foodics_purchase_log" name="Sync Log / Retry Queue"
+              parent="menu_foodics_purchase_root"
+              action="action_foodics_sync_log" sequence="40"/>
+
+</odoo>
