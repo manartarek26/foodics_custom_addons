@@ -56,6 +56,45 @@ class PurchaseOrder(models.Model):
              "native Odoo PO equivalent.")
     foodics_note = fields.Text(compute='_compute_foodics_note')
 
+    @api.onchange('foodics_branch_id')
+    def _onchange_foodics_branch_id(self):
+        """Convenience default: point receiving at the same Odoo warehouse the branch is
+        mapped to (foodics.branch.warehouse_id, set under Foodics > Branches), so a PO tagged
+        for a branch doesn't silently receive into a different warehouse than the one that
+        branch's POS sales deplete (see foodics_accounting: branch -> pos_config_id -> its own
+        warehouse). Only overrides when it actually differs, and only via onchange (a plain
+        create()/write() - e.g. an import, or a future API entry point - is left alone); see
+        foodics_warehouse_warning for the always-accurate check that catches those cases too.
+        """
+        for po in self:
+            warehouse = po.foodics_branch_id.warehouse_id
+            if warehouse and warehouse.in_type_id and \
+                    po.picking_type_id.warehouse_id != warehouse:
+                po.picking_type_id = warehouse.in_type_id
+
+    foodics_warehouse_warning = fields.Char(compute='_compute_foodics_warehouse_warning')
+
+    @api.depends('foodics_branch_id.warehouse_id', 'picking_type_id.warehouse_id')
+    def _compute_foodics_warehouse_warning(self):
+        """Non-blocking check (same spirit as foodics_currency_warning): flags when this PO
+        will receive into a different Odoo warehouse than the one the selected branch is mapped
+        to. Never blocks confirm - some setups may deliberately cross-receive - but silently
+        letting this drift is exactly what would desync Odoo stock from what the branch's POS
+        sales are depleting.
+        """
+        for po in self:
+            warning = False
+            branch_wh = po.foodics_branch_id.warehouse_id
+            po_wh = po.picking_type_id.warehouse_id
+            if branch_wh and po_wh and branch_wh != po_wh:
+                warning = _(
+                    'This PO receives into warehouse "%(po_wh)s", but branch "%(branch)s" is '
+                    'mapped to warehouse "%(branch_wh)s" (Foodics > Branches). Stock bought for '
+                    'this branch will land in the wrong warehouse unless that\'s intentional.'
+                ) % {'po_wh': po_wh.name, 'branch': po.foodics_branch_id.name,
+                     'branch_wh': branch_wh.name}
+            po.foodics_warehouse_warning = warning
+
     @api.depends('partner_id', 'foodics_config_id')
     def _compute_foodics_supplier(self):
         """Resolve the Foodics supplier shadow record matching this PO's

@@ -2,6 +2,7 @@ from . import foodics_api
 from . import foodics_sync_log
 from . import foodics_supplier
 from . import foodics_inventory_item
+from . import foodics_product_mapping
 from . import foodics_inventory_level
 from . import foodics_config
 from . import purchase_order_line

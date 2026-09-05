@@ -38,6 +38,10 @@
                          invisible="not foodics_currency_warning">
                         <field name="foodics_currency_warning"/>
                     </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not foodics_warehouse_warning">
+                        <field name="foodics_warehouse_warning"/>
+                    </div>
                     <field name="foodics_note" nolabel="1" readonly="1"
                            invisible="not foodics_note"/>
                 </page>

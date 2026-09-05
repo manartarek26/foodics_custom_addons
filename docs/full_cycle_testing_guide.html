@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Testing the Full Cycle — Purchasing + POS, Step by Step</title>
+<style>
+  :root {
+    --ink: #23262f;
+    --muted: #666e7c;
+    --accent: #2a7d5f;
+    --accent-bg: #e9f6ef;
+    --line: #e6e6ea;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --warn: #9a6400;
+    --warn-bg: #fff5e0;
+    --bad: #a1273b;
+    --bad-bg: #fdecee;
+    --step: #2a5d9c;
+    --step-bg: #eaf1fb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+  header.page {
+    padding: 30px 24px;
+    background: linear-gradient(135deg, var(--accent), #4fae86);
+    color: white;
+    border-radius: 14px;
+    margin: 24px auto 32px;
+    max-width: 860px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header.page p { margin: 0; opacity: .92; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 46px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.06rem; margin: 22px 0 8px; }
+  p { font-size: 1.02rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .case {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--step);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 18px 0;
+  }
+  .case h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
+  .case .tag {
+    display: inline-block;
+    background: var(--step-bg);
+    color: var(--step);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .case ol { margin: 10px 0 6px; padding-left: 22px; }
+  .case li { margin: 6px 0; }
+  .expect {
+    margin-top: 12px;
+    background: var(--accent-bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .95rem;
+  }
+  .expect strong { color: var(--accent); }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .warn {
+    border-left: 4px solid var(--warn);
+    background: var(--warn-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .bad {
+    border-left: 4px solid var(--bad);
+    background: var(--bad-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .93rem; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: #f0f1f5;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .88em;
+  }
+  .btn {
+    display: inline-block;
+    background: #eef0f4;
+    border: 1px solid #d7dae1;
+    border-radius: 6px;
+    padding: 1px 8px;
+    font-size: .88em;
+    font-weight: 600;
+  }
+  .menupath { color: var(--muted); font-size: .92rem; }
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .toc ol { columns: 2; column-gap: 30px; padding-left: 20px; }
+  .toc li { margin: 4px 0; break-inside: avoid; }
+  .faq dt { font-weight: 700; margin-top: 16px; }
+  .faq dd { margin: 4px 0 0; color: var(--ink); }
+  footer { margin-top: 60px; color: var(--muted); font-size: .85rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Testing the Full Cycle, Step by Step</h1>
+    <p>Purchasing (<code>foodics_purchase</code>) and POS/accounting (<code>foodics_accounting</code>)
+       together, on the same stock - suppliers, inventory items, purchase orders, receiving,
+       returns to supplier, cost adjustments, and how a purchased item and a sold item meet on
+       one Odoo product's stock card. Uses <code>foodics_mock</code> +
+       <code>foodics_mock_purchase_ext</code>, no real Foodics account needed.</p>
+  </header>
+
+  <div class="note">
+    <strong>Read this first if you only want the short answer.</strong> The cycle is: Odoo is
+    the source of truth for purchasing. A confirmed PO is pushed to Foodics as an approval
+    request (draft/pending) - it never moves stock on either side. Only <em>validating a
+    receipt</em> in Odoo moves stock (up) and pushes an Inventory Transaction (type 1,
+    Purchasing) so Foodics' own levels move too; a return-to-supplier does the same in reverse
+    (type 4). Foodics has no purchasing webhooks, so PO status/cost changes are polled on a
+    cron. This is independent of <code>foodics_accounting</code>, which moves the same kind of
+    stock the other direction (down) whenever a Foodics till closes or returns a sale. The two
+    only stay consistent if (a) the branch's mapped warehouse is the same one POs receive into,
+    and (b) a physical item sold via the till and bought via a PO resolve to the <em>same</em>
+    Odoo product - both are now checked with non-blocking warnings, see Cases G and H below.
+  </div>
+  <div class="bad">
+    <strong>Known gap, as of this revision:</strong> <code>foodics_accounting</code>'s POS
+    sale/return does <strong>not</strong> currently move Odoo stock at all under Odoo's default
+    "real time" POS stock setting - see the full explanation in Case I. The purchasing side
+    (Cases A-G) is unaffected and moves stock correctly; this only concerns the till side.
+  </div>
+
+  <div class="toc">
+    <strong>On this page</strong>
+    <ol>
+      <li><a href="#setup">0. One-time setup</a></li>
+      <li><a href="#masterdata">1. Purchasing master data</a></li>
+      <li><a href="#happy">2. Case A - the happy purchase path</a></li>
+      <li><a href="#approval">3. Case B - approval simulation &amp; status polling</a></li>
+      <li><a href="#partial">4. Case C - partial receipt / backorder</a></li>
+      <li><a href="#return">5. Case D - return to supplier</a></li>
+      <li><a href="#cost">6. Case E - cost adjustments</a></li>
+      <li><a href="#levels">7. Case F - stock levels pulled</a></li>
+      <li><a href="#warehouse">8. Case G - branch/warehouse consistency</a></li>
+      <li><a href="#mapping">9. Case H - sale/purchase product-mapping cross-check</a></li>
+      <li><a href="#e2e">10. Case I - full cycle: buy it, then sell it</a></li>
+      <li><a href="#failures">11. Case J - failure paths</a></li>
+      <li><a href="#coverage">Coverage checklist</a></li>
+      <li><a href="#verify">Where to look: the purchasing output</a></li>
+      <li><a href="#faq">Troubleshooting / FAQ</a></li>
+    </ol>
+  </div>
+
+  <h2 id="setup">0. One-time setup</h2>
+  <p>Install <code>foodics_base</code>, <code>foodics_mock</code>, <code>foodics_purchase</code>
+     and <code>foodics_mock_purchase_ext</code> (add <code>foodics_accounting</code> too if
+     you'll run Case I). Then, if you haven't connected to the mock server at all yet:</p>
+  <ol>
+    <li>Create a <strong>Foodics Mock &gt; Fake Apps</strong> record.</li>
+    <li>Create a <strong>Foodics &gt; Connection</strong> pointing its Custom API/Authorization
+        Base URLs at the mock server, and authorize it.</li>
+    <li>Copy the Connection's <strong>Webhook URL</strong> into the Fake App's
+        <strong>Webhook URL</strong> field (needed if you'll also run the POS side in Case I).</li>
+    <li>On the Connection, click <span class="btn">Sync Branches</span>, then open the branch
+        and set <strong>Odoo Warehouse</strong> (Foodics &gt; Branches). If you'll run Case I,
+        also set <strong>Odoo POS Point</strong> there.</li>
+  </ol>
+  <p>On the Connection's <strong>Foodics tab</strong> (added by <code>foodics_purchase</code>),
+     set:</p>
+  <table>
+    <tr><th>Field</th><th>Suggested test value</th></tr>
+    <tr><td>PO Creator ID (Foodics User)</td>
+        <td>Any non-empty string, e.g. <code>test-user-1</code> - the mock accepts anything,
+            but the docs mark this required and <code>_foodics_validate_for_push()</code> blocks
+            confirmation without it.</td></tr>
+    <tr><td>Auto-submit POs for review</td>
+        <td>Off first (test Draft), on later (test Pending, Case B).</td></tr>
+    <tr><td>Receipt Price Tolerance %</td><td>5 - to see Case J's price-deviation warning fire.</td></tr>
+    <tr><td>Auto-create products for new inventory items</td>
+        <td>On - lets Case 1 create products for you instead of mapping by hand.</td></tr>
+    <tr><td>Apply cost adjustments to product cost</td><td>On - needed for Case E to show an effect.</td></tr>
+  </table>
+  <div class="warn">
+    <strong>If you change any Python file</strong> in these modules (or pull an update that
+    does), <strong>restart the Odoo server process</strong> first - controller/model code is only
+    read once, at process start; editing a <code>.py</code> file on disk does not hot-reload,
+    unlike views/data which a module upgrade does pick up.
+  </div>
+
+  <h2 id="masterdata">1. Purchasing master data</h2>
+  <p>On the Connection, click <span class="btn">Sync Suppliers</span> then
+     <span class="btn">Sync Inventory Items</span>. The mock lazily seeds sample data the first
+     time either endpoint is hit for this Fake App (<code>mock_app_ext.py</code>,
+     <code>_ensure_purchase_seed()</code>):</p>
+  <table>
+    <tr><th>Object</th><th>Seeded rows</th></tr>
+    <tr><td>Inventory Items</td><td>Tomatoes (box), Cheese Slices (Kg), Beef Patty (Kg), Cooking Oil (box)</td></tr>
+    <tr><td>Suppliers</td><td>Hyper Market (Tomatoes, Cooking Oil), Fresh Farms Co (Cheese, Beef Patty)</td></tr>
+    <tr><td>History</td><td>One already-Closed PO (<code>PO-SEED-0001</code>) with its receiving
+        transaction, and one Cost Adjustment on Cheese - so polling has something to find on day one.</td></tr>
+  </table>
+  <div class="expect">
+    <strong>Expect:</strong> under <span class="menupath">Foodics &gt; Suppliers</span>, two
+    vendors auto-linked to new <code>res.partner</code> records. Under
+    <span class="menupath">Foodics &gt; Inventory Items</span>, four items - each with
+    <strong>Odoo UoM</strong> auto-guessed (<code>box</code>/<code>Kg</code> match the built-in
+    alias table) and, if <strong>Auto-create products</strong> was on, a new storable
+    <code>product.product</code> per item. If you'd rather map to existing products, turn that
+    option off first and set <strong>Linked Odoo Product</strong> by hand.
+  </div>
+
+  <h2 id="happy">2. Case A - the happy purchase path</h2>
+  <div class="case">
+    <h3><span class="tag">Core</span> Confirm in Odoo → pushed as an approval request, no stock yet</h3>
+    <ol>
+      <li>Create a <strong>Purchase Order</strong> for the vendor linked to Hyper Market, one
+          line: Tomatoes, qty 10 (order unit = box, matching the supplier pivot's
+          <code>order_to_storage_factor</code> = 2 boxes→storage).</li>
+      <li>On the Foodics tab, set <strong>Foodics Branch</strong>.</li>
+      <li>Click <span class="btn">Confirm Order</span>.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> confirmation succeeds, <strong>Foodics PO ID</strong> and
+      <strong>Foodics Status</strong> = Draft (or Pending, if auto-submit is on) populate, and
+      <strong>Sync State</strong> = Synced. Nothing moved in <code>stock.quant</code> yet - per
+      the docs, a purchase order is only an approval request. Open
+      <span class="menupath">Foodics &gt; Purchase Sync Log</span> (or the PO's
+      <span class="btn">View Sync Log</span>) to see the <code>POST /purchase_orders</code> call
+      and its response.
+    </div>
+  </div>
+  <div class="case">
+    <h3><span class="tag">Core</span> Receiving is what actually moves stock</h3>
+    <ol>
+      <li>Open the PO's receipt (<span class="menupath">Purchase &gt; Orders &gt; (this PO) &gt;
+          Receipt</span> smart button) and click <span class="btn">Validate</span>.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the picking's <strong>Foodics Sync State</strong> = Synced,
+      <strong>Foodics TX ID</strong> populated. <code>stock.quant</code> for Tomatoes now shows
+      +20 (10 boxes × factor 2 = 20 storage units) in the branch's mapped warehouse. Back on the
+      PO, <strong>Foodics Status</strong> flipped to <strong>Closed</strong> automatically - the
+      mock applied the same <code>quantity_received</code>/status logic the real platform uses
+      (<code>_apply_receiving_to_po()</code>). Check
+      <span class="menupath">Foodics Mock &gt; Received Inventory Transactions</span> for the
+      posted type-1 "Purchasing" transaction with the converted storage quantity/cost.
+    </div>
+  </div>
+
+  <h2 id="approval">3. Case B - approval simulation &amp; status polling</h2>
+  <div class="case">
+    <h3><span class="tag">Reliability</span> Foodics has no PO webhooks - Odoo has to ask</h3>
+    <p>The mock has no "Approve" button by design (mirroring that this normally happens in the
+       real Foodics console, outside Odoo's control) - you simulate it by editing the mock
+       record directly, the same way you'd simulate any other externally-driven change.</p>
+    <ol>
+      <li>Confirm a new PO as in Case A, but stop before validating the receipt.</li>
+      <li>Open <span class="menupath">Foodics Mock &gt; Received Purchase Orders</span>, find the
+          row matching your PO's <strong>Foodics PO ID</strong>, open it and change
+          <strong>Status</strong> to <code>3</code> (Approved). Save.</li>
+      <li>Back on the Connection, click <span class="btn">Pull PO Statuses</span> (or wait for
+          the purchase-poll cron).</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the Odoo PO's <strong>Foodics Status</strong> updates to
+      Approved. Try status <code>4</code> (Declined) instead: the poll sets
+      <strong>Sync State</strong> = Sync Error and logs a warning
+      ("...was DECLINED in Foodics") visible in the Foodics tab's banner and the Sync Log -
+      review before continuing, exactly like the accounting side's Needs Review pattern.
+    </div>
+  </div>
+
+  <h2 id="partial">4. Case C - partial receipt / backorder</h2>
+  <div class="case">
+    <h3><span class="tag">Reliability</span> One transaction per picking</h3>
+    <ol>
+      <li>Confirm a PO for 10 boxes of Cooking Oil.</li>
+      <li>On the receipt, set <strong>Done</strong> quantity to 6 boxes and validate - choose
+          <strong>Create Backorder</strong> when prompted.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the first picking pushes its own Inventory Transaction for the 6
+      received; the PO's <strong>Foodics Status</strong> becomes
+      <strong>Partially Received</strong>. Validate the backorder picking for the remaining 4 -
+      a second transaction is pushed, and the PO closes. Each Odoo picking maps to exactly one
+      Foodics transaction, matching the doc's "partial deliveries naturally produce one
+      transaction per validated picking" design.
+    </div>
+  </div>
+
+  <h2 id="return">5. Case D - return to supplier</h2>
+  <div class="case">
+    <h3><span class="tag">Reversal</span> Type 4, traced back through the original receipt</h3>
+    <ol>
+      <li>Take an already-received PO from Case A. Open its receipt, click
+          <span class="btn">Return</span>, confirm a return of some quantity.</li>
+      <li>Validate the resulting outgoing picking.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> stock decreases by the returned quantity; a type-4
+      "Return to Supplier" transaction is pushed, traced back to the original receipt/PO via
+      <code>origin_returned_move_id</code> (<code>_foodics_return_context()</code>) - not by
+      re-guessing the PO from the product alone. Visible under
+      <span class="menupath">Foodics Mock &gt; Received Inventory Transactions</span>, type
+      "Return to Supplier".
+    </div>
+  </div>
+
+  <h2 id="cost">6. Case E - cost adjustments</h2>
+  <div class="case">
+    <h3><span class="tag">Pull</span> Foodics corrects a cost, Odoo picks it up on the next poll</h3>
+    <ol>
+      <li>On the Connection, click <span class="btn">Pull Cost Adjustments</span> right after
+          setup - the seeded <code>CA-SEED-0001</code> (Cheese) is already there.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the Cheese <code>foodics.inventory.item</code>'s
+      <strong>Cost</strong> updates, and - because <strong>Apply cost adjustments to product
+      cost</strong> is on - the linked product's <strong>Cost</strong>
+      (<code>standard_price</code>) updates too, written with
+      <code>context={'disable_foodics_sync': True}</code> so it doesn't loop back into any
+      product-side sync.
+    </div>
+  </div>
+
+  <h2 id="levels">7. Case F - stock levels pulled</h2>
+  <div class="case">
+    <h3><span class="tag">Informational</span> Foodics' own view of stock, side by side with Odoo's</h3>
+    <ol>
+      <li>Click <span class="btn">Pull Stock Levels</span> after receiving something in Case A.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> rows appear under <span class="menupath">Foodics &gt; Stock
+      Levels</span>, one per (branch, item), showing Foodics' own <code>quantity</code>/
+      <code>cost_per_unit</code>. This is a read-only snapshot for comparison - it does not
+      write into Odoo's <code>stock.quant</code>; if it drifts from Odoo's own on-hand quantity
+      for the same product, that's a signal worth investigating (Foodics-side manual stock
+      count, a transaction that failed to push, etc.), not something this pull auto-corrects.
+    </div>
+  </div>
+
+  <h2 id="warehouse">8. Case G - branch/warehouse consistency (new)</h2>
+  <div class="case">
+    <h3><span class="tag">Integration</span> A PO should receive into the branch's own warehouse</h3>
+    <ol>
+      <li>On a PO, set <strong>Foodics Branch</strong> to a branch mapped to Warehouse A.</li>
+      <li>Confirm you see <strong>Deliver To</strong> (the PO's <code>picking_type_id</code>)
+          auto-switch to Warehouse A's receiving type the moment you pick the branch.</li>
+      <li>Now manually change <strong>Deliver To</strong> to a picking type belonging to a
+          different warehouse.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> a warning banner appears on the Foodics tab: "This PO receives
+      into warehouse ..., but branch ... is mapped to warehouse ...". It does <strong>not</strong>
+      block <span class="btn">Confirm Order</span> - some setups may deliberately cross-receive -
+      but it's there so a mismatch is never silent. This is what stops PO receipts and POS sales
+      for the same branch from quietly moving stock in two different warehouses.
+    </div>
+  </div>
+
+  <h2 id="mapping">9. Case H - sale/purchase product-mapping cross-check (new)</h2>
+  <div class="case">
+    <h3><span class="tag">Integration</span> Same SKU, two different Odoo products - now flagged</h3>
+    <ol>
+      <li>Requires <code>foodics_accounting</code> or <code>foodics_order_sync</code> installed
+          too (they own <code>foodics.product.mapping</code>). Sync the menu (<span
+          class="btn">Sync Menu</span>) so at least one menu product exists.</li>
+      <li>Pick a <code>foodics.inventory.item</code> and set its <strong>SKU</strong> to match a
+          synced menu product's <strong>SKU</strong> exactly, but leave the two
+          <strong>Linked Odoo Product</strong>/<strong>Odoo Product</strong> fields pointed at
+          two <em>different</em> products (or leave one unmapped).</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect:</strong> the inventory item's form shows a red banner ("Menu product ...
+      shares this item's SKU ... but resolved to a different Odoo product...") and the list view
+      highlights the row. Now set both <strong>Linked Odoo Product</strong> fields to the same
+      product: the warning clears, and each side's <strong>Linked Menu Product</strong> /
+      <strong>Linked Inventory Item</strong> field now points at the other mapping - a quick way
+      to confirm, for any shared item, that a POS sale and a PO receipt of "the same thing" will
+      actually move the same stock card. Most menu products (a "Burger") will correctly show no
+      linked inventory item at all - only its raw ingredients would.
+    </div>
+  </div>
+
+  <h2 id="e2e">10. Case I - full cycle: buy it, then sell it</h2>
+  <div class="bad">
+    <strong>Known gap - the stock-quantity part of this case does not currently pass.</strong>
+    <code>foodics_accounting</code> builds its <code>pos.order</code> records with a plain ORM
+    <code>create()</code>, then calls <code>action_pos_order_paid()</code> /
+    <code>action_pos_order_invoice()</code> directly - it never goes through
+    <code>_process_saved_order()</code>. In core Odoo, a POS order's <code>stock.picking</code>
+    is only ever created from <code>_process_saved_order()</code> or from one conditional call
+    inside <code>action_pos_order_invoice()</code> that only fires when the company's stock
+    policy is "At the session closing" <em>and</em> anglo-saxon accounting is on
+    (<code>pos_order.py</code>, <code>_should_create_picking_real_time()</code>). Odoo's default
+    company setting is "In real time" - under that default (and it's the common case), neither
+    path ever runs here, so <strong>no stock movement happens for a sale or a return</strong>,
+    not just the return. The financial side (invoice/credit note/payment reconciliation) is
+    unaffected and already correct - see Section 9's step-by-step below with the stock checks
+    removed. Fix, when ready: an explicit <code>order._create_order_picking()</code> call inside
+    both <code>_create_via_pos_order()</code> and <code>_create_via_pos_refund()</code> in
+    <code>foodics_accounting/models/foodics_pos_order.py</code>, right after
+    <code>action_pos_order_paid()</code>.
+  </div>
+  <div class="case">
+    <h3><span class="tag">End to end</span> One product, two directions, one stock card (financial side only, for now)</h3>
+    <p>Requires <code>foodics_accounting</code> installed and its own setup done (Sales Journal,
+       branch's Odoo POS Point, taxes/payment methods synced - see
+       <code>accounting_testing_guide.html</code>). Pick a product that's both a purchase item
+       and something the till can sell - easiest is to reuse Case H's merged mapping.</p>
+    <ol>
+      <li>Note the product's <strong>On Hand</strong> quantity (Inventory app) before starting -
+          this is only to confirm the known gap above, not an expectation to pass yet.</li>
+      <li>Buy it: confirm a PO for that item, receive it (Case A). On Hand goes up by the
+          received storage quantity - the purchase side is standard <code>purchase_stock</code>,
+          untouched by the gap above, and does move stock correctly.</li>
+      <li>Sell it: build a <strong>Foodics Mock &gt; Mock POS Orders</strong> order using the
+          matching menu product, pay it, <span class="btn">Close &amp; Send</span>.</li>
+    </ol>
+    <div class="expect">
+      <strong>Expect today:</strong> Foodics &gt; POS Orders shows the sale Invoiced; Foodics
+      &gt; Purchase Orders shows the buy Closed; the sale's invoice and (on a return, see
+      <code>accounting_testing_guide.html</code> Case F) the credit note are both correct and
+      already <strong>Paid</strong> - no manual "Register Payment" step. On Hand will
+      <strong>not</strong> move from the sale or the return until the gap above is fixed; only
+      the purchase-side increase from step 2 will show.
+    </div>
+  </div>
+
+  <h2 id="failures">11. Case J - failure paths</h2>
+  <div class="case">
+    <h3><span class="tag">Defensive</span> Bad data blocks confirmation, not silent guessing</h3>
+    <table>
+      <tr><th>Scenario</th><th>Where</th><th>Expect</th></tr>
+      <tr><td>Line's item has no <strong>Foodics Inventory Item</strong> mapped</td>
+          <td><span class="btn">Confirm Order</span></td>
+          <td><code>UserError</code> listing every problem line before anything is pushed
+              (<code>_foodics_validate_for_push()</code>) - PO stays in Draft.</td></tr>
+      <tr><td>Quantity below the supplier pivot's <strong>Minimum Order Quantity</strong></td>
+          <td><span class="btn">Confirm Order</span></td>
+          <td>Same aggregate <code>UserError</code>, names the line and the MOQ.</td></tr>
+      <tr><td>No <strong>PO Creator ID</strong> set on the Connection</td>
+          <td><span class="btn">Confirm Order</span></td>
+          <td>Blocked - the docs require <code>creator_id</code> on every created PO.</td></tr>
+      <tr><td>PO currency differs from the Connection's <code>business_currency</code></td>
+          <td>Foodics tab</td>
+          <td>Non-blocking warning banner - the docs don't define conversion behavior, so it's
+              surfaced, not guessed.</td></tr>
+      <tr><td>Receiving at a cost differing from the PO line beyond the tolerance %</td>
+          <td>After <span class="btn">Validate</span> on the receipt</td>
+          <td>Non-blocking warning on the Sync Log entry; the transaction still posts.</td></tr>
+      <tr><td>A receipt line's product has no matching Foodics item at all</td>
+          <td>After <span class="btn">Validate</span></td>
+          <td>That line is skipped with a logged warning rather than blocking the whole
+              transaction push.</td></tr>
+      <tr><td><span class="btn">Reset to Draft</span> a PO already pushed to Foodics</td>
+          <td>PO form</td>
+          <td>Blocked - "Cancel it first (which deletes/declines it upstream)".</td></tr>
+      <tr><td><span class="btn">Cancel</span> a still-Draft-upstream PO</td>
+          <td>PO form</td>
+          <td><code>DELETE /purchase_orders/{id}</code> - fully removed both sides.</td></tr>
+      <tr><td><span class="btn">Cancel</span> a Pending/Approved PO</td>
+          <td>PO form</td>
+          <td><code>PUT status=4</code> (Declined) upstream instead of deleting.</td></tr>
+      <tr><td><span class="btn">Cancel</span> a Closed PO</td>
+          <td>PO form</td>
+          <td>Refused with a logged warning - closed orders can't be touched per the docs' status
+              table.</td></tr>
+    </table>
+  </div>
+
+  <h2 id="coverage">Coverage checklist</h2>
+  <table>
+    <tr><th>Area</th><th>Covered by</th></tr>
+    <tr><td>Suppliers/items sync, UoM auto-guess, product auto-create</td><td>Section 1</td></tr>
+    <tr><td>PO push (draft/pending), receipt push, PO status auto-advance</td><td>Case A</td></tr>
+    <tr><td>Status polling (approved/declined), no PO webhooks</td><td>Case B</td></tr>
+    <tr><td>Partial receiving / backorders</td><td>Case C</td></tr>
+    <tr><td>Return to supplier</td><td>Case D</td></tr>
+    <tr><td>Cost adjustment pull → product cost</td><td>Case E</td></tr>
+    <tr><td>Stock level snapshot pull</td><td>Case F</td></tr>
+    <tr><td>Branch → warehouse consistency</td><td>Case G</td></tr>
+    <tr><td>Sale/purchase product-mapping consistency</td><td>Case H</td></tr>
+    <tr><td>Cross-cycle financial correctness (buy + sell one product) - stock movement on the
+        POS side is a known gap, see Case I</td><td>Case I</td></tr>
+    <tr><td>Validation/failure/cancel paths</td><td>Case J</td></tr>
+  </table>
+
+  <h2 id="verify">Where to look: the purchasing output</h2>
+  <table>
+    <tr><th>Question</th><th>Where</th></tr>
+    <tr><td>Did the PO reach Foodics? What did it send/get back?</td>
+        <td>PO form &gt; <span class="btn">View Sync Log</span>, or
+            <span class="menupath">Foodics &gt; Purchase Sync Log</span></td></tr>
+    <tr><td>Did stock actually move?</td>
+        <td>Inventory &gt; product &gt; <strong>On Hand</strong>, or the picking's
+            <strong>Moves</strong> tab</td></tr>
+    <tr><td>Did the transaction reach Foodics?</td>
+        <td>Picking form's <strong>Foodics TX ID</strong>/<strong>Foodics Sync State</strong>,
+            or <span class="menupath">Foodics Mock &gt; Received Inventory Transactions</span></td></tr>
+    <tr><td>Is a mapping missing or inconsistent?</td>
+        <td><span class="menupath">Foodics &gt; Inventory Items</span> (red rows/banners),
+            PO's Foodics tab (warning banners)</td></tr>
+  </table>
+
+  <h2 id="faq">Troubleshooting / FAQ</h2>
+  <dl class="faq">
+    <dt>The PO won't confirm - "no Foodics inventory item mapped".</dt>
+    <dd>Map <strong>Foodics Inventory Item</strong> on the order line (or sync inventory items
+        first if the list is empty).</dd>
+
+    <dt>"Set 'PO Creator ID (Foodics User)' on the connection."</dt>
+    <dd>Any non-empty string works against the mock - the docs require it, they don't validate
+        it's a real user id.</dd>
+
+    <dt>I edited the mock PO's status but nothing changed in Odoo.</dt>
+    <dd>Status changes made directly on the mock aren't pushed to Odoo (Foodics has no PO
+        webhooks) - click <span class="btn">Pull PO Statuses</span>, or wait for the cron.</dd>
+
+    <dt>Receiving didn't push a transaction.</dt>
+    <dd>Only <code>done</code> moves tied to a <code>purchase_line_id</code> are included
+        (<code>_foodics_build_receipt_items</code>) - check the move actually has a quantity
+        done and belongs to this PO's line, and that the picking is
+        <code>picking_type_code == 'incoming'</code>.</dd>
+
+    <dt>401 Unauthenticated calling any purchase endpoint.</dt>
+    <dd>Same root cause as the accounting guide's version of this: the Connection's stored
+        access token doesn't match any <code>foodics.mock.app</code> - re-authorize.</dd>
+
+    <dt>I want to start the purchase-side seed data over.</dt>
+    <dd>Delete the Fake App's <code>foodics.mock.inventory.item</code>/
+        <code>foodics.mock.supplier</code> records - <code>_ensure_purchase_seed()</code> only
+        seeds when the app has zero items, so removing them re-triggers it on the next sync.</dd>
+  </dl>
+
+  <footer>Foodics ↔ Odoo 18 - foodics_purchase + foodics_mock_purchase_ext, alongside
+    foodics_accounting. See also <code>accounting_testing_guide.html</code>,
+    <code>base_and_mock.html</code>, <code>order_sync.html</code>.</footer>
+</div>
+</body>
+</html>

@@ -44,6 +44,7 @@ warnings and soft-deleted upstream records.
         # views/actions first, menus reference their action ids
         'views/foodics_config_views.xml',
         'views/foodics_master_views.xml',
+        'views/foodics_product_mapping_views.xml',
         'views/purchase_order_views.xml',
         'views/stock_picking_views.xml',
         'views/menu_views.xml',

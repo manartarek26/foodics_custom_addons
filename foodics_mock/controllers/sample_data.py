@@ -100,68 +100,13 @@ def payment_methods_data():
     }
 
 
-def _mock_pos_order(order_id, number, status, product_qty_price, tax_amount, payment_method_id):
-    """Shaped after the sample in Foodics' "Accounting/ERP Integration" guide: enough of the
-    real /orders response for foodics_accounting to build an invoice line-by-line from it -
-    one product line (with its tax) and one full payment covering the order total.
-    """
-    quantity, unit_price = product_qty_price
-    subtotal = quantity * unit_price
-    total = subtotal + tax_amount
-    return {
-        'id': order_id,
-        'number': number,
-        'type': 1,
-        'status': status,
-        'branch': {'id': 'mock-branch-001', 'name': 'Main Branch (Mock)', 'reference': 'B01'},
-        'customer': None,
-        'business_date': '2024-07-28',
-        'opened_at': '2024-07-28 12:38:39',
-        'closed_at': '2024-07-28 12:43:47',
-        'subtotal_price': subtotal,
-        'discount_amount': 0,
-        'rounding_amount': 0,
-        'total_price': total,
-        'products': [
-            {
-                'id': f'{order_id}-line-1',
-                'product': {'id': 'mock-prod-burger', 'name': 'Burger'},
-                'quantity': quantity,
-                'unit_price': unit_price,
-                'discount_amount': 0,
-                'total_price': total,
-                'tax_exclusive_unit_price': unit_price,
-                'tax_exclusive_total_price': subtotal,
-                'status': 3,
-                'taxes': [{'id': 'mock-tax-vat15', 'name': 'VAT 15% (Mock)', 'rate': 15,
-                           'pivot': {'amount': tax_amount, 'rate': 15}}],
-                'options': [],
-            }
-        ],
-        'combos': [],
-        'charges': [],
-        'payments': [
-            {
-                'id': f'{order_id}-pay-1',
-                'amount': total,
-                'tendered': total,
-                'tips': 0,
-                'business_date': '2024-07-28',
-                'payment_method': {'id': payment_method_id, 'name': 'Cash (Mock)', 'type': 1},
-            }
-        ],
-    }
-
-
 def orders_data(status_filter=None):
-    """Two canned orders: one Closed (4), one Returned (5) - enough to exercise both the
-    invoice and credit-note paths of foodics_accounting's pull sync without a real account.
-    `status_filter` mirrors Foodics' `filter[status]` query param (comma-separated string/list).
+    """No canned orders - foodics_accounting's pull sync/"Refresh from Foodics" only ever sees
+    whatever you build by hand under Foodics Mock > Mock POS Orders (foodics.mock.pos.order).
+    `status_filter` mirrors Foodics' `filter[status]` query param (comma-separated string/list),
+    kept here even though it's a no-op on an always-empty list so callers don't need to special-case it.
     """
-    all_orders = [
-        _mock_pos_order('mock-order-closed-001', 101, 4, (2, 28.0), 8.4, 'mock-pm-cash'),
-        _mock_pos_order('mock-order-returned-001', 102, 5, (1, 28.0), 4.2, 'mock-pm-card'),
-    ]
+    all_orders = []
     if status_filter:
         wanted = {int(s) for s in str(status_filter).split(',') if s.strip().isdigit()}
         all_orders = [o for o in all_orders if o['status'] in wanted]

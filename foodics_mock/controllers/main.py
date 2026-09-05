@@ -245,11 +245,6 @@ class FoodicsMockController(http.Controller):
     def get_order(self, order_id, **kwargs):
         if not _find_app_by_token(request):
             return _json_response({'message': 'Unauthenticated'}, status=401)
-        # One of the two canned accounting orders (sample_data.orders_data)? Serve those as-is,
-        # so foodics_accounting's "Refresh from Foodics" button works against the mock too.
-        canned = {o['id']: o for o in sample_data.orders_data()['data']}
-        if order_id in canned:
-            return _json_response({'data': canned[order_id]})
         mock_pos_order = request.env['foodics.mock.pos.order'].sudo().search([('foodics_id', '=', order_id)], limit=1)
         if mock_pos_order:
             return _json_response({'data': mock_pos_order._to_payload()})

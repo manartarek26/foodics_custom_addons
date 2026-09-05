@@ -345,11 +345,14 @@ class FoodicsPosOrder(models.Model):
             'price_subtotal_incl': 0.0,
         }) for c in common]
 
-    def _pos_payment_vals_list(self):
+    def _pos_payment_vals_list(self, negate=False):
         """(0, 0, {...}) dicts for pos.payment, one per foodics.pos.order.payment. Unlike a
         product, there's no safe "fallback" for money movement - an unmapped Foodics payment
         method holds the whole order in Needs Review (see _create_via_pos_order()) rather than
-        guessing which Odoo POS payment method it should land in.
+        guessing which Odoo POS payment method it should land in. `negate=True` (the return path)
+        flips the sign so the payments add up to the refund order's negative total - Foodics
+        reports a return's payments with the same positive sign as the original sale (see
+        _create_via_pos_refund()).
         """
         self.ensure_one()
         vals_list = []
@@ -362,7 +365,7 @@ class FoodicsPosOrder(models.Model):
                 ) % (pay.payment_method_id.name or pay.foodics_payment_method_id or _('Unknown')))
             vals_list.append((0, 0, {
                 'payment_method_id': mapping.pos_payment_method_id.id,
-                'amount': pay.amount,
+                'amount': -pay.amount if negate else pay.amount,
                 'payment_date': pay.business_date or self.business_date or fields.Date.context_today(self),
             }))
         return vals_list
@@ -483,18 +486,23 @@ class FoodicsPosOrder(models.Model):
         """The return path: a second pos.order in the same session, built from the return
         payload's own lines with negated quantities - Odoo's own invoicing then picks
         'out_refund' automatically from the resulting negative total (_prepare_invoice_vals()).
-        Deliberately no payments attached: Foodics doesn't say whether a return paid cash back,
-        was exchanged, or was waived, so that stays a manual reconciliation step, same reasoning
-        as the direct-credit-note approach this replaces. reversed_entry_id is linked ourselves
-        afterwards rather than via the native refunded_orderline_id mechanism, since that would
-        require matching each returned line 1:1 against the original order's lines, which a
-        partial return doesn't guarantee.
+        Foodics is the source of truth for the return too: the payment(s) it reports on the
+        return payload already happened for real at the till, so they're attached here (negated,
+        see _pos_payment_vals_list()) and the order is marked paid exactly like a normal sale -
+        no manual "Payment" step needed on the credit note afterwards. reversed_entry_id is
+        linked ourselves afterwards rather than via the native refunded_orderline_id mechanism,
+        since that would require matching each returned line 1:1 against the original order's
+        lines, which a partial return doesn't guarantee.
         """
         self.ensure_one()
         if self.pos_order_id:
             order = self.pos_order_id
             order.lines.unlink()
-            order.write({'lines': self._pos_order_line_vals_list(negate=True)})
+            order.payment_ids.unlink()
+            order.write({
+                'lines': self._pos_order_line_vals_list(negate=True),
+                'payment_ids': self._pos_payment_vals_list(negate=True),
+            })
         else:
             session = self._get_or_create_session()
             order = self.env['pos.order'].create({
@@ -504,6 +512,7 @@ class FoodicsPosOrder(models.Model):
                 'partner_id': partner.id,
                 'date_order': self.opened_at or fields.Datetime.now(),
                 'lines': self._pos_order_line_vals_list(negate=True),
+                'payment_ids': self._pos_payment_vals_list(negate=True),
             })
             self.pos_order_id = order.id
         self._finalize_pos_order_amounts(order)
@@ -519,6 +528,11 @@ class FoodicsPosOrder(models.Model):
             })
             return False
 
+        try:
+            order.action_pos_order_paid()
+        except UserError as e:
+            self.write({'state': 'needs_review', 'error_message': f"can not make it paid: {str(e)}"})
+            return False
         order.action_pos_order_invoice()
         move = order.account_move
         original_invoice = self.original_order_id.pos_order_id.account_move

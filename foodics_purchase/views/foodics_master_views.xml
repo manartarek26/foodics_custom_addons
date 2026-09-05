@@ -82,7 +82,8 @@
         <field name="model">foodics.inventory.item</field>
         <field name="arch" type="xml">
             <list string="Foodics Inventory Items"
-                  decoration-warning="not uom_mapped">
+                  decoration-warning="not uom_mapped"
+                  decoration-danger="sku_mismatch_warning">
                 <field name="name"/>
                 <field name="sku"/>
                 <field name="storage_unit"/>
@@ -91,6 +92,7 @@
                 <field name="product_id"/>
                 <field name="cost"/>
                 <field name="minimum_level" optional="show"/>
+                <field name="sku_mismatch_warning" column_invisible="1"/>
                 <field name="deleted_in_foodics" optional="hide"/>
             </list>
         </field>
@@ -108,6 +110,10 @@
                             bg_color="text-bg-warning" invisible="uom_mapped"/>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>
+                    </div>
+                    <div class="alert alert-danger" role="alert"
+                         invisible="not sku_mismatch_warning">
+                        <field name="sku_mismatch_warning"/>
                     </div>
                     <group>
                         <group string="Foodics Data">
@@ -137,6 +143,7 @@
                             <field name="active" invisible="1"/>
                             <field name="deleted_in_foodics"/>
                             <field name="synced_at"/>
+                            <field name="linked_sale_mapping_id"/>
                         </group>
                     </group>
                     <notebook>

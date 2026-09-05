@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cycle Verification &amp; Test Plan — PO + Accounting</title>
+<style>
+  :root {
+    --ink: #23262f;
+    --muted: #666e7c;
+    --accent: #2a7d5f;
+    --accent-bg: #e9f6ef;
+    --line: #e6e6ea;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --warn: #9a6400;
+    --warn-bg: #fff5e0;
+    --bad: #a1273b;
+    --bad-bg: #fdecee;
+    --step: #2a5d9c;
+    --step-bg: #eaf1fb;
+    --ok: #1a7a44;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px 80px; }
+  header.page {
+    padding: 30px 24px;
+    background: linear-gradient(135deg, var(--accent), #4fae86);
+    color: white;
+    border-radius: 14px;
+    margin: 24px auto 32px;
+    max-width: 880px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  header.page p { margin: 0; opacity: .92; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 46px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.06rem; margin: 22px 0 8px; }
+  p { font-size: 1.02rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .warn {
+    border-left: 4px solid var(--warn);
+    background: var(--warn-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  .bad {
+    border-left: 4px solid var(--bad);
+    background: var(--bad-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .92rem; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: #f0f1f5;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: .88em;
+  }
+  pre {
+    background: #f5f6f9;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: .85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  .btn {
+    display: inline-block;
+    background: #eef0f4;
+    border: 1px solid #d7dae1;
+    border-radius: 6px;
+    padding: 1px 8px;
+    font-size: .88em;
+    font-weight: 600;
+  }
+  .menupath { color: var(--muted); font-size: .92rem; }
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 4px 0; }
+  .ok { color: var(--ok); font-weight: 700; }
+  .pending { color: var(--warn); font-weight: 700; }
+  .status-pass { color: var(--ok); font-weight: 700; }
+  .status-deferred { color: var(--warn); font-weight: 700; }
+  footer { margin-top: 60px; color: var(--muted); font-size: .85rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Cycle Verification &amp; Test Plan</h1>
+    <p>Does the code actually do what the intended cycle says it should? Verified line-by-line
+       against <code>foodics_purchase</code> and <code>foodics_accounting</code>, with a formal
+       test-case list for both. Inventory movement on the POS side is explicitly out of scope
+       here - see the note below.</p>
+  </header>
+
+  <div class="note">
+    <strong>Scope of this document.</strong> Confirms the <strong>purchasing cycle</strong> (PO →
+    Foodics → receiving) and the <strong>financial/accounting cycle</strong> for POS sales and
+    returns (invoice, credit note, payment reconciliation). It deliberately does
+    <strong>not</strong> claim inventory correctness for POS sales/returns - that's a known,
+    separate gap (see "Deferred: POS-side inventory" at the bottom), out of scope for this round
+    by design, not by oversight.
+  </div>
+
+  <div class="toc">
+    <strong>On this page</strong>
+    <ol>
+      <li><a href="#cycle">1. The verified cycle</a></li>
+      <li><a href="#po-tests">2. Test cases - Purchasing (foodics_purchase)</a></li>
+      <li><a href="#acc-tests">3. Test cases - Accounting (foodics_accounting, financial side)</a></li>
+      <li><a href="#deferred">4. Deferred: POS-side inventory</a></li>
+    </ol>
+  </div>
+
+  <h2 id="cycle">1. The verified cycle</h2>
+
+  <h3>Original sale</h3>
+  <pre>Foodics Sale                    Odoo
+────────────────                ────────────────
+Product A × 2                → foodics.pos.order (state=to_invoice)
+1,000, paid by Card          →     ↓ _create_via_pos_order()
+                              → pos.order (2 lines, 1 payment "Card")
+                              →     ↓ action_pos_order_paid() + action_pos_order_invoice()
+                              → Invoice (out_invoice), Paid                          <span class="ok">✓ verified</span></pre>
+  <p><code>foodics_pos_order.py:431-482</code>. The payment is reconciled against the invoice by
+     core Odoo's own <code>_apply_invoice_payments()</code>, called from
+     <code>action_pos_order_invoice()</code> - no manual step.</p>
+
+  <h3>Return</h3>
+  <pre>Foodics Return                  Odoo
+────────────────                ────────────────
+Product A × 1                → foodics.pos.order (state=to_refund)
+-500, money already          →     ↓ _create_via_pos_refund()
+returned by Foodics          → pos.order #2, same session, negated qty
+                              → payment_ids = negated Card payment                    <span class="ok">✓ verified</span>
+                              →     ↓ action_pos_order_paid() + action_pos_order_invoice()
+                              → Credit Note (out_refund), reversed_entry_id → original  <span class="ok">✓ verified</span>
+                              → Credit Note is already Paid, no gateway call made       <span class="ok">✓ verified</span>
+                              → Stock quantity: unaffected                             <span class="pending">⧗ deferred</span></pre>
+  <p><code>foodics_pos_order.py:482-538</code> (this session's fix added the negated
+     <code>payment_ids</code> and <code>action_pos_order_paid()</code> call to this method -
+     previously the credit note was left unreconciled). Confirmed no code path here calls out to
+     any payment provider/gateway API - <code>account.payment</code> creation is a pure Odoo
+     bookkeeping entry, matching "don't refund the customer again."</p>
+
+  <table>
+    <tr><th>Effect</th><th>Your requirement</th><th>Status</th><th>Where</th></tr>
+    <tr><td>Financial: revenue/tax reduced</td><td>Required</td>
+        <td class="status-pass">DONE</td>
+        <td><code>_create_via_pos_refund()</code> → <code>action_pos_order_invoice()</code></td></tr>
+    <tr><td>Financial: receivable/payment reconciled</td><td>Required, no second real refund</td>
+        <td class="status-pass">DONE</td>
+        <td><code>_pos_payment_vals_list(negate=True)</code> + <code>action_pos_order_paid()</code></td></tr>
+    <tr><td>Inventory: unit(s) returned to stock</td><td>Required (you)</td>
+        <td class="status-deferred">DEFERRED</td>
+        <td>See Section 4 - and it turns out to affect the <em>original sale</em> too, not
+            just the return</td></tr>
+  </table>
+
+  <h2 id="po-tests">2. Test cases - Purchasing (foodics_purchase)</h2>
+  <p>Full click-through steps for each of these are in <code>full_cycle_testing_guide.html</code>
+     (Cases A-J). This is the condensed pass/fail matrix.</p>
+  <table>
+    <tr><th>ID</th><th>Case</th><th>Expected</th><th>Status</th></tr>
+    <tr><td>PO-01</td><td>Confirm a PO with a mapped item</td>
+        <td>Pushed as <code>POST /purchase_orders</code>, status Draft/Pending, no stock moved</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-02</td><td>Confirm a PO with an unmapped item / no branch / no supplier link / MOQ violation</td>
+        <td>Blocked with an aggregate <code>UserError</code> before any push</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-03</td><td>Validate the receipt</td>
+        <td>Stock increases; <code>POST /inventory_transactions</code> type 1; PO auto-flips to
+            Partially Received/Closed</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-04</td><td>Partial receipt with backorder</td>
+        <td>One transaction per picking; PO reaches Closed once both are validated</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-05</td><td>Return a receipt to the supplier</td>
+        <td>Stock decreases; type-4 transaction traced back to the original PO via
+            <code>origin_returned_move_id</code></td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-06</td><td>Foodics declines/approves the PO externally</td>
+        <td>Only reflected in Odoo after <span class="btn">Pull PO Statuses</span> (no PO webhooks exist)</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-07</td><td>Cost Adjustment pulled from Foodics</td>
+        <td>Item cost updates; product <code>standard_price</code> updates if enabled</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-08</td><td>Cancel a Draft-upstream / Pending-upstream / Closed PO</td>
+        <td>DELETE / decline (status 4) / refused respectively, matching doc'd status rules</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>PO-09</td><td>PO's branch warehouse differs from where it actually receives</td>
+        <td>Non-blocking warning banner (this session's addition); auto-defaults on branch pick</td>
+        <td class="status-pass">PASS</td></tr>
+  </table>
+
+  <h2 id="acc-tests">3. Test cases - Accounting (foodics_accounting, financial side)</h2>
+  <p>Full click-through steps in <code>accounting_testing_guide.html</code> (Cases A-K). Stock
+     columns are intentionally omitted here - see Section 4.</p>
+  <table>
+    <tr><th>ID</th><th>Case</th><th>Expected</th><th>Status</th></tr>
+    <tr><td>ACC-01</td><td>Foodics closes an order (happy path)</td>
+        <td>New <code>pos.order</code>, paid, invoiced automatically - no manual steps</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-02</td><td>Split payment, mixed tax, service charge, rounding line</td>
+        <td>All reflected correctly on the invoice; totals reconcile within tolerance</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-03</td><td>Foodics returns an order (full or partial)</td>
+        <td>Second <code>pos.order</code>, negated qty; credit note (<code>out_refund</code>)
+            auto-detected from negative total; linked to original invoice</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-04</td><td>Return's payment reconciliation</td>
+        <td>Credit note comes out already <strong>Paid</strong> - negated payment(s) attached,
+            no manual "Register Payment"; no second real refund is ever triggered</td>
+        <td class="status-pass">PASS <em>(fixed this session)</em></td></tr>
+    <tr><td>ACC-05</td><td>Unmapped tax / unmapped payment method on an order</td>
+        <td>Order held in Needs Review with an actionable message; nothing posted incorrectly</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-06</td><td>Missed webhook</td>
+        <td>Caught by the pull cron via <code>GET /orders</code>, same code path as the webhook</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-07</td><td>Webhook/pull replay (idempotency)</td>
+        <td>No duplicate <code>pos.order</code>/invoice/payment on a repeat delivery</td>
+        <td class="status-pass">PASS</td></tr>
+    <tr><td>ACC-08</td><td>Same physical item mapped on both the sale side and purchase side</td>
+        <td>Non-blocking warning if the two mappings resolve to different Odoo products (this
+            session's addition)</td>
+        <td class="status-pass">PASS</td></tr>
+  </table>
+
+  <h2 id="deferred">4. Deferred: POS-side inventory</h2>
+  <div class="bad">
+    <strong>Confirmed gap, not yet fixed (per your call to add it later).</strong> Tracing core
+    Odoo: a <code>pos.order</code>'s <code>stock.picking</code> is only created by
+    <code>_process_saved_order()</code> (the normal frontend flow) or, conditionally, inside
+    <code>action_pos_order_invoice()</code> - and that condition only fires when the company's
+    stock policy is "At the session closing" <em>and</em> anglo-saxon accounting is on
+    (<code>point_of_sale/models/pos_order.py</code>, <code>_should_create_picking_real_time()</code>).
+    <code>foodics_accounting</code> calls neither <code>_process_saved_order()</code> nor ever
+    closes its session (by design - see <code>_get_or_create_session()</code>'s own docstring).
+    Odoo's <strong>default</strong> company setting is "In real time" - under that default,
+    <strong>no stock movement happens for a sale or a return</strong>, not only the return.
+  </div>
+  <p>This affects both directions equally, so there is no accounting-vs-inventory split fix
+     needed on the return side specifically - one fix covers both:</p>
+  <table>
+    <tr><th>File</th><th>Fix</th></tr>
+    <tr><td><code>foodics_accounting/models/foodics_pos_order.py</code>,
+        <code>_create_via_pos_order()</code></td>
+        <td>Call <code>order._create_order_picking()</code> right after
+            <code>action_pos_order_paid()</code> succeeds.</td></tr>
+    <tr><td><code>foodics_accounting/models/foodics_pos_order.py</code>,
+        <code>_create_via_pos_refund()</code></td>
+        <td>Same call, same place - the negative-quantity lines already make core Odoo's
+            <code>_create_picking_from_pos_order_lines()</code> produce a genuine
+            return-direction picking (verified: it splits purely on quantity sign, no dependency
+            on the native refund-linkage mechanism this module intentionally doesn't use).</td></tr>
+  </table>
+  <p>Once that's in place, re-run <code>full_cycle_testing_guide.html</code> Case I end to end -
+     it's already written to check On Hand at each step and will validate the fix immediately.</p>
+
+  <footer>Foodics ↔ Odoo 18. See also <code>accounting_testing_guide.html</code>,
+    <code>full_cycle_testing_guide.html</code>, <code>base_and_mock.html</code>,
+    <code>order_sync.html</code>.</footer>
+</div>
+</body>
+</html>

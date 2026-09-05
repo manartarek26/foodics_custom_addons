@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         foodics.product.mapping (owned by foodics_base) - additive cross-link
+         to the purchase-side foodics.inventory.item, see
+         foodics_product_mapping.py::linked_inventory_item_id.
+         ================================================================ -->
+    <record id="view_foodics_product_mapping_form_purchase" model="ir.ui.view">
+        <field name="name">foodics.product.mapping.form.purchase</field>
+        <field name="model">foodics.product.mapping</field>
+        <field name="inherit_id" ref="foodics_base.view_foodics_product_mapping_form"/>
+        <field name="arch" type="xml">
+            <field name="note" position="after">
+                <field name="linked_inventory_item_id"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

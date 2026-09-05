@@ -77,6 +77,52 @@ class FoodicsInventoryItem(models.Model):
             rec.uom_mapped = bool(rec.odoo_uom_id)
 
     # ------------------------------------------------------------------
+    # Cross-link to the sale-side mapping (foodics_base's foodics.product.mapping,
+    # extended below in foodics_product_mapping.py). Foodics genuinely treats "menu
+    # products" (what a till sells) and "inventory items" (what a branch buys/stocks) as
+    # different upstream entities, so this is purely informational - it never forces the two
+    # onto the same product.product. What it DOES catch: the same physical thing (same SKU)
+    # ending up mapped to two different Odoo products because the sale-side and purchase-side
+    # syncs matched independently - that would silently split one item's stock across two
+    # product cards (POS sales depleting one, PO receipts replenishing the other).
+    # ------------------------------------------------------------------
+    linked_sale_mapping_id = fields.Many2one(
+        'foodics.product.mapping', compute='_compute_linked_sale_mapping',
+        string='Linked Menu Product',
+        help='The Foodics menu product (sale-side mapping) sharing this item\'s Odoo product, '
+             'if any.')
+    sku_mismatch_warning = fields.Char(compute='_compute_linked_sale_mapping')
+
+    @api.depends('config_id', 'product_id', 'sku')
+    def _compute_linked_sale_mapping(self):
+        Mapping = self.env['foodics.product.mapping']
+        for item in self:
+            mapping = Mapping.browse()
+            warning = False
+            if item.product_id:
+                mapping = Mapping.search([
+                    ('config_id', '=', item.config_id.id),
+                    ('product_id', '=', item.product_id.id),
+                ], limit=1)
+            if item.sku:
+                same_sku = Mapping.search([
+                    ('config_id', '=', item.config_id.id),
+                    ('sku', '=ilike', item.sku),
+                ], limit=1)
+                if same_sku and same_sku.product_id != item.product_id:
+                    warning = _(
+                        'Menu product "%(menu)s" shares this item\'s SKU (%(sku)s) but resolved '
+                        'to a different Odoo product (%(menu_prod)s vs %(item_prod)s). If these '
+                        'are really the same physical thing, sales and purchases will move '
+                        'stock on two different product cards - check whether they should be '
+                        'merged onto one product.'
+                    ) % {'menu': same_sku.name, 'sku': item.sku,
+                         'menu_prod': same_sku.product_id.display_name or _('(unmapped)'),
+                         'item_prod': item.product_id.display_name or _('(unmapped)')}
+            item.linked_sale_mapping_id = mapping
+            item.sku_mismatch_warning = warning
+
+    # ------------------------------------------------------------------
     # sync  (implements docs "List Inventory Items")
     # ------------------------------------------------------------------
     @api.model
